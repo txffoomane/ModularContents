@@ -1,0 +1,12 @@
+{
+    "variants": {
+        "crafting=false,facing=north": { "model": "modularcontents:custom_workbench" },
+        "crafting=false,facing=east":  { "model": "modularcontents:custom_workbench", "y": 90 },
+        "crafting=false,facing=south": { "model": "modularcontents:custom_workbench", "y": 180 },
+        "crafting=false,facing=west":  { "model": "modularcontents:custom_workbench", "y": 270 },
+        "crafting=true,facing=north":  { "model": "modularcontents:custom_workbench" },
+        "crafting=true,facing=east":   { "model": "modularcontents:custom_workbench", "y": 90 },
+        "crafting=true,facing=south":  { "model": "modularcontents:custom_workbench", "y": 180 },
+        "crafting=true,facing=west":   { "model": "modularcontents:custom_workbench", "y": 270 }
+    }
+}
