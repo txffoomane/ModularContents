@@ -14,7 +14,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,14 +46,7 @@ public class PacketCraftStartHandler implements IMessageHandler<PacketCraftStart
     }
 
     private boolean isItemMatching(IngredientStack ingredient, ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        ItemStack required = ingredient.toItemStack();
-        if (required.isEmpty()) return false;
-
-        if (required.getItem() != stack.getItem()) return false;
-        if (ingredient.meta != OreDictionary.WILDCARD_VALUE && ingredient.meta != stack.getMetadata()) return false;
-
-        return true;
+        return ingredient.matches(stack);
     }
 
     private boolean hasIngredients(EntityPlayerMP player, ListWorkbenchRecipe recipe, int amount) {

@@ -447,15 +447,11 @@ public class GuiListWorkbench extends GuiContainer {
     }
 
     private int countItemInInventory(IngredientStack requiredIng) {
-        ItemStack required = requiredIng.toItemStack();
-        if (required.isEmpty()) return 0;
         int count = 0;
         for (int i = 0; i < playerInv.mainInventory.size(); i++) {
             ItemStack stack = playerInv.mainInventory.get(i);
-            if (!stack.isEmpty() && stack.getItem() == required.getItem()) {
-                if (requiredIng.meta == net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE || requiredIng.meta == stack.getMetadata()) {
-                    count += stack.getCount();
-                }
+            if (requiredIng.matches(stack)) {
+                count += stack.getCount();
             }
         }
         return count;

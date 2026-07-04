@@ -1,0 +1,24 @@
+{
+  "id": "example_nbt_sword",
+  "category": "Basics",
+  "outputs": [
+    {
+      "item": "minecraft:diamond_sword",
+      "count": 1,
+      "nbt": "{display:{Name:\"Sharp Blade\",Lore:[\"Crafted with NBT support\"]},ench:[{id:16s,lvl:3s},{id:34s,lvl:2s}],Unbreakable:1b}"
+    }
+  ],
+  "inputs": [
+    {
+      "item": "minecraft:diamond",
+      "count": 2,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:stick",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 100
+}

@@ -13,7 +13,6 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.oredict.OreDictionary;
 
 public class PacketCraftCancelHandler implements IMessageHandler<PacketCraftCancel, IMessage> {
 
@@ -60,13 +59,6 @@ public class PacketCraftCancelHandler implements IMessageHandler<PacketCraftCanc
     }
 
     private boolean isItemMatching(IngredientStack ingredient, ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        ItemStack required = ingredient.toItemStack();
-        if (required.isEmpty()) return false;
-
-        if (required.getItem() != stack.getItem()) return false;
-        if (ingredient.meta != OreDictionary.WILDCARD_VALUE && ingredient.meta != stack.getMetadata()) return false;
-
-        return true;
+        return ingredient.matches(stack);
     }
 }
