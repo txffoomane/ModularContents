@@ -3,7 +3,7 @@
     "modid": "modularcontents",
     "name": "ModularContents",
     "description": "Discord server: https://discord.gg/JWV6A4JdTN",
-    "license": "Unlicense (public domain) - free to use and modify without any restrictions, see LICENSE",
+    "license": "MIT - free to use and modify, but credit to the original authors is required, see LICENSE",
     "version": "1.0.0",
     "credits": "",
     "logoFile": "",
