@@ -12,6 +12,14 @@ public class ModularContentsConfig {
     public static int globalAirdropMaxRadius = 500;
     public static String[] globalAirdropLootTables = new String[0]; // Empty means all allowed
 
+    public static String[] workbenchRecipeShape = new String[] { "BCB", "IAI", "I I" };
+    public static String[] workbenchRecipeKeys = new String[] {
+        "B:minecraft:iron_block",
+        "C:minecraft:crafting_table",
+        "I:ore:ingotIron",
+        "A:minecraft:anvil"
+    };
+
     public static void load(File gameDir) {
         File configDir = new File(gameDir, "ModularContents");
         if (!configDir.exists()) {
@@ -30,6 +38,11 @@ public class ModularContentsConfig {
         globalAirdropMinRadius = config.getInt("Min Radius", airdropCat, 100, 10, 10000, "Minimum radius from a random player to spawn the drop");
         globalAirdropMaxRadius = config.getInt("Max Radius", airdropCat, 500, 50, 10000, "Maximum radius from a random player to spawn the drop");
         globalAirdropLootTables = config.getStringList("Allowed Loot Tables", airdropCat, new String[0], "List of allowed loot tables (e.g. 'military_loot'). Leave empty to allow any.");
+
+        String recipeCat = "Workbench Recipe";
+        config.addCustomCategoryComment(recipeCat, "Settings for the Custom Workbench crafting recipe");
+        workbenchRecipeShape = config.getStringList("Recipe Shape", recipeCat, new String[] { "BCB", "IAI", "I I" }, "3x3 crafting grid pattern for the custom workbench");
+        workbenchRecipeKeys = config.getStringList("Recipe Keys", recipeCat, new String[] { "B:minecraft:iron_block", "C:minecraft:crafting_table", "I:ore:ingotIron", "A:minecraft:anvil" }, "Map of characters in the shape to items or ore dictionary entries (Format -> 'Char:modid:item' OR 'Char:ore:oreDictName')");
 
         if (config.hasChanged()) {
             config.save();

@@ -69,9 +69,11 @@ import modularcontents.custom.network.PacketLaptopAirdrop;
 import modularcontents.custom.network.PacketLaptopAirdropHandler;
 import modularcontents.custom.gui.GuiLaptop;
 import modularcontents.custom.event.GlobalAirdropHandler;
-
 import modularcontents.custom.network.PacketOpenCreator;
 import modularcontents.custom.network.PacketOpenCreatorHandler;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraftforge.oredict.ShapedOreRecipe;
+import java.util.ArrayList;
 
 @Mod(modid = ModularcontentsMod.MODID, version = ModularcontentsMod.VERSION, name = "ModularContents")
 @Mod.EventBusSubscriber
@@ -205,6 +207,42 @@ public class ModularcontentsMod implements IGuiHandler {
         for (CustomItemInfo info : CustomItemManager.CUSTOM_ITEMS.values()) {
             Item item = new ItemCustom(info);
             event.getRegistry().register(item);
+        }
+    }
+
+    @SubscribeEvent
+    public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
+        try {
+            ArrayList<Object> params = new ArrayList<>();
+            for (String row : ModularContentsConfig.workbenchRecipeShape) {
+                params.add(row);
+            }
+            for (String keyMap : ModularContentsConfig.workbenchRecipeKeys) {
+                String[] parts = keyMap.split(":", 3);
+                if (parts.length >= 3) {
+                    char c = parts[0].charAt(0);
+                    params.add(c);
+                    if (parts[1].equalsIgnoreCase("ore")) {
+                        params.add(parts[2]);
+                    } else {
+                        Item item = Item.getByNameOrId(parts[1] + ":" + parts[2]);
+                        if (item != null) {
+                            params.add(new ItemStack(item));
+                        } else {
+                            Block block = Block.getBlockFromName(parts[1] + ":" + parts[2]);
+                            if (block != null) {
+                                params.add(new ItemStack(block));
+                            }
+                        }
+                    }
+                }
+            }
+
+            ShapedOreRecipe recipe = new ShapedOreRecipe(new ResourceLocation(MODID, "custom_workbench"), new ItemStack(custom_workbench_item), params.toArray());
+            recipe.setRegistryName(new ResourceLocation(MODID, "custom_workbench"));
+            event.getRegistry().register(recipe);
+        } catch (Exception e) {
+            System.err.println("[ModularContents] Failed to register custom workbench recipe from config: " + e.getMessage());
         }
     }
 

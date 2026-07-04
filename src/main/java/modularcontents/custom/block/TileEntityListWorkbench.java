@@ -93,6 +93,8 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
         String id = queueRecipes[0];
         boolean moreAfter = getQueuedCrafts() > 1;
         if (!id.isEmpty()) {
+            this.world.playSound(null, this.pos, net.minecraft.init.SoundEvents.BLOCK_ANVIL_USE, net.minecraft.util.SoundCategory.BLOCKS, 0.4F, this.world.rand.nextFloat() * 0.2F + 0.9F);
+
             ListWorkbenchRecipe recipe = ListWorkbenchRecipeManager.getRecipe(id);
             if (recipe != null) {
                 for (IngredientStack ingredient : recipe.inputs) {

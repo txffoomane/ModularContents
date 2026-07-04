@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "modularcontents:airdrop" },
+        "facing=east":  { "model": "modularcontents:airdrop", "y": 90 },
+        "facing=south": { "model": "modularcontents:airdrop", "y": 180 },
+        "facing=west":  { "model": "modularcontents:airdrop", "y": 270 }
+    }
+}

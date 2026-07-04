@@ -21,11 +21,13 @@ public class EntityAirdrop extends Entity {
     private boolean isFlare = false;
     private double originalTargetX = 0;
     private double originalTargetZ = 0;
+    private boolean isRedSmoke;
 
     public EntityAirdrop(World worldIn) {
         super(worldIn);
         this.setSize(0.98F, 0.98F);
         this.preventEntitySpawning = true;
+        this.isRedSmoke = worldIn.rand.nextBoolean();
     }
 
     public EntityAirdrop(World worldIn, double x, double y, double z) {
@@ -67,10 +69,22 @@ public class EntityAirdrop extends Entity {
 
         if (this.delayTimer > 0) {
             this.delayTimer--;
+
+            // Plane sound right as it appears (delay ends soon or starts)
+            if (this.delayTimer == 10 && !this.world.isRemote) {
+                 this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.ENTITY_ENDERDRAGON_FLAP, net.minecraft.util.SoundCategory.AMBIENT, 5.0F, 0.5F);
+                 this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.ENTITY_MINECART_RIDING, net.minecraft.util.SoundCategory.AMBIENT, 3.0F, 0.2F);
+            }
+
             this.motionY = 0;
             this.motionX = 0;
             this.motionZ = 0;
             return;
+        }
+
+        if (this.ticksExisted == 1 && !this.world.isRemote) {
+             this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.ENTITY_ENDERDRAGON_FLAP, net.minecraft.util.SoundCategory.AMBIENT, 5.0F, 0.5F);
+             this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.ENTITY_MINECART_RIDING, net.minecraft.util.SoundCategory.AMBIENT, 3.0F, 0.2F);
         }
 
         this.prevPosX = this.posX;
@@ -87,8 +101,14 @@ public class EntityAirdrop extends Entity {
 
         // Smoke particles
         if (this.world.isRemote) {
-            this.world.spawnParticle(EnumParticleTypes.SMOKE_LARGE, this.posX, this.posY + 1.5D, this.posZ, 0.0D, 0.1D, 0.0D);
-            this.world.spawnParticle(EnumParticleTypes.FLAME, this.posX, this.posY + 1.2D, this.posZ, 0.0D, 0.0D, 0.0D);
+            float r = this.isRedSmoke ? 1.0F : 0.0F;
+            float g = (r == 0.0F) ? 1.0F : 0.0F;
+            float b = 0.0F;
+            try {
+                Class<?> clazz = Class.forName("modularcontents.custom.client.ClientProxyUtils");
+                java.lang.reflect.Method method = clazz.getMethod("spawnAirdropSmoke", net.minecraft.world.World.class, double.class, double.class, double.class, float.class, float.class, float.class);
+                method.invoke(null, this.world, this.posX, this.posY + 1.5D, this.posZ, r, g, b);
+            } catch (Exception e) {}
         }
 
         if (!this.world.isRemote) {
@@ -97,10 +117,14 @@ public class EntityAirdrop extends Entity {
 
             if (this.onGround || !state.getBlock().isReplaceable(this.world, pos.down())) {
                 // Landed!
+                this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.BLOCK_ANVIL_LAND, net.minecraft.util.SoundCategory.BLOCKS, 2.0F, 0.7F);
+                this.world.playSound(null, this.posX, this.posY, this.posZ, net.minecraft.init.SoundEvents.ENTITY_GENERIC_EXPLODE, net.minecraft.util.SoundCategory.BLOCKS, 1.0F, 1.2F);
+
                 this.world.setBlockState(pos, ModularcontentsMod.airdrop.getDefaultState());
                 TileEntity te = this.world.getTileEntity(pos);
                 if (te instanceof TileEntityAirdrop) {
                     ((TileEntityAirdrop) te).setLootTableName(this.lootTableName);
+                    ((TileEntityAirdrop) te).setRedSmoke(this.isRedSmoke);
                 }
 
                 // Notify player
@@ -149,6 +173,9 @@ public class EntityAirdrop extends Entity {
         this.isFlare = compound.getBoolean("IsFlare");
         this.originalTargetX = compound.getDouble("OriginalX");
         this.originalTargetZ = compound.getDouble("OriginalZ");
+        if (compound.hasKey("IsRedSmoke")) {
+            this.isRedSmoke = compound.getBoolean("IsRedSmoke");
+        }
     }
 
     @Override
@@ -163,5 +190,6 @@ public class EntityAirdrop extends Entity {
         compound.setBoolean("IsFlare", this.isFlare);
         compound.setDouble("OriginalX", this.originalTargetX);
         compound.setDouble("OriginalZ", this.originalTargetZ);
+        compound.setBoolean("IsRedSmoke", this.isRedSmoke);
     }
 }

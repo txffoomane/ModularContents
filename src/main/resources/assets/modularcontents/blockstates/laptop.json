@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "modularcontents:laptop" },
+        "facing=east":  { "model": "modularcontents:laptop", "y": 90 },
+        "facing=south": { "model": "modularcontents:laptop", "y": 180 },
+        "facing=west":  { "model": "modularcontents:laptop", "y": 270 }
+    }
+}
