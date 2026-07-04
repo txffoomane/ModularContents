@@ -7,11 +7,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class ListWorkbenchRecipeManager {
     private static final Logger LOGGER = LogManager.getLogger("ModularContents");
@@ -31,13 +37,47 @@ public class ListWorkbenchRecipeManager {
 
     private static boolean hasAnyPack(File rootPacksDir) {
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
-        if (packDirs == null) return false;
-        for (File packDir : packDirs) {
-            File recipeDir = new File(packDir, "recipes");
-            if (recipeDir.isDirectory()) {
-                File[] jsons = recipeDir.listFiles((d, name) -> name.endsWith(".json"));
-                if (jsons != null && jsons.length > 0) return true;
+        if (packDirs != null) {
+            for (File packDir : packDirs) {
+                File recipeDir = new File(packDir, "recipes");
+                if (recipeDir.isDirectory()) {
+                    File[] jsons = recipeDir.listFiles((d, name) -> name.endsWith(".json"));
+                    if (jsons != null && jsons.length > 0) return true;
+                }
             }
+        }
+
+        File[] zips = rootPacksDir.listFiles((d, name) -> isZipName(name));
+        if (zips != null) {
+            for (File zip : zips) {
+                if (zipHasRecipes(zip)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isZipName(String name) {
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        return lower.endsWith(".zip");
+    }
+
+    private static boolean isRecipeEntry(String entryName) {
+        String normalized = entryName.replace('\\', '/');
+        String lower = normalized.toLowerCase(java.util.Locale.ROOT);
+        return lower.startsWith("recipes/") && lower.endsWith(".json");
+    }
+
+    private static boolean zipHasRecipes(File zipFile) {
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (!entry.isDirectory() && isRecipeEntry(entry.getName())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to read pack archive: " + zipFile.getName(), e);
         }
         return false;
     }
@@ -58,6 +98,37 @@ public class ListWorkbenchRecipeManager {
                     loadRecipesFromDir(recipeDir, packDir.getName());
                 }
             }
+        }
+
+        File[] zips = rootPacksDir.listFiles((d, name) -> isZipName(name));
+        if (zips != null) {
+            for (File zip : zips) {
+                loadRecipesFromZip(zip);
+            }
+        }
+    }
+
+    private static void loadRecipesFromZip(File zipFile) {
+        String packName = zipFile.getName();
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory() || !isRecipeEntry(entry.getName())) {
+                    continue;
+                }
+                try (Reader reader = new InputStreamReader(zip.getInputStream(entry), StandardCharsets.UTF_8)) {
+                    ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
+                    if (recipe != null && recipe.id != null) {
+                        RECIPES.put(recipe.id, recipe);
+                        LOGGER.info("Loaded custom workbench recipe '" + recipe.id + "' from pack '" + packName + "'");
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to load recipe: " + entry.getName() + " in pack: " + packName, e);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to open pack archive: " + packName, e);
         }
     }
 
