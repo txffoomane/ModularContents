@@ -1,7 +1,9 @@
 package modularcontents.custom.network;
 
 import modularcontents.custom.entity.EntityAirdrop;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.WorldServer;
@@ -10,6 +12,9 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class PacketLaptopAirdropHandler implements IMessageHandler<PacketLaptopAirdrop, IMessage> {
+    private static final int MIN_RANGE = 25;
+    private static final int MAX_RANGE = 200;
+
     @Override
     public IMessage onMessage(PacketLaptopAirdrop message, MessageContext ctx) {
         EntityPlayerMP player = ctx.getServerHandler().player;
@@ -21,11 +26,21 @@ public class PacketLaptopAirdropHandler implements IMessageHandler<PacketLaptopA
                 return;
             }
 
-            // Target max 256 blocks away from the laptop
             double dx = message.targetX - message.lx;
             double dz = message.targetZ - message.lz;
-            if (dx * dx + dz * dz > 256 * 256) {
-                return; // Too far!
+            double distSq = dx * dx + dz * dz;
+            if (distSq < MIN_RANGE * MIN_RANGE || distSq > MAX_RANGE * MAX_RANGE) {
+                player.sendMessage(new TextComponentString(TextFormatting.RED + "Target out of range (" + MIN_RANGE + "-" + MAX_RANGE + " blocks)."));
+                return;
+            }
+
+            int tx = (int) message.targetX;
+            int tz = (int) message.targetZ;
+            int ty = world.getHeight(tx, tz);
+            BlockPos surface = new BlockPos(tx, ty > 0 ? ty - 1 : 0, tz);
+            if (world.getBlockState(surface).getMaterial() == Material.WATER) {
+                player.sendMessage(new TextComponentString(TextFormatting.RED + "Cannot drop on water."));
+                return;
             }
 
             int delayTicks = 200 + world.rand.nextInt(800); // 10-50 seconds

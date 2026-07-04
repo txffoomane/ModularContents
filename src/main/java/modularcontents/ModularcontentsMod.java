@@ -2,6 +2,7 @@ package modularcontents;
 
 import modularcontents.custom.block.BlockListWorkbench;
 import modularcontents.custom.block.TileEntityListWorkbench;
+import modularcontents.custom.entity.RenderSignalFlare;
 import modularcontents.custom.gui.GuiListWorkbench;
 import modularcontents.custom.inventory.ContainerListWorkbench;
 import modularcontents.custom.network.PacketCraftCancel;
@@ -13,6 +14,10 @@ import modularcontents.custom.config.ModularContentsConfig;
 import modularcontents.custom.command.CommandModularContents;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.resources.FallbackResourceManager;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.SimpleReloadableResourceManager;
+import net.minecraft.client.resources.data.MetadataSerializer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -46,6 +51,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import java.util.List;
 import java.io.File;
+import java.util.Map;
 
 import modularcontents.custom.block.BlockAirdrop;
 import modularcontents.custom.block.TileEntityAirdrop;
@@ -62,10 +68,6 @@ import modularcontents.custom.block.BlockLaptop;
 import modularcontents.custom.network.PacketLaptopAirdrop;
 import modularcontents.custom.network.PacketLaptopAirdropHandler;
 import modularcontents.custom.gui.GuiLaptop;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.client.gui.GuiScreen;
 import modularcontents.custom.event.GlobalAirdropHandler;
 
 import modularcontents.custom.network.PacketOpenCreator;
@@ -74,7 +76,6 @@ import modularcontents.custom.network.PacketOpenCreatorHandler;
 @Mod(modid = ModularcontentsMod.MODID, version = ModularcontentsMod.VERSION, name = "ModularContents")
 @Mod.EventBusSubscriber
 public class ModularcontentsMod implements IGuiHandler {
-
     public static final String MODID = "modularcontents";
     public static final String VERSION = "1.0.0";
 
@@ -114,7 +115,7 @@ public class ModularcontentsMod implements IGuiHandler {
         if (event.getSide() == Side.CLIENT) {
             modularcontents.custom.keybind.KeybindManager.register();
             RenderingRegistry.registerEntityRenderingHandler(EntityAirdrop.class, RenderAirdrop::new);
-            RenderingRegistry.registerEntityRenderingHandler(EntitySignalFlare.class, manager -> new net.minecraft.client.renderer.entity.RenderSnowball<>(manager, signal_flare, net.minecraft.client.Minecraft.getMinecraft().getRenderItem()));
+            RenderingRegistry.registerEntityRenderingHandler(EntitySignalFlare.class, manager -> new RenderSignalFlare(manager, signal_flare, Minecraft.getMinecraft().getRenderItem()));
         }
 
         // Setup directories for custom recipes
@@ -146,14 +147,14 @@ public class ModularcontentsMod implements IGuiHandler {
             List<IResourcePack> defaultPacks = ReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getMinecraft(), "defaultResourcePacks", "field_110449_ao");
             defaultPacks.add(pack);
 
-            net.minecraft.client.resources.IResourceManager manager = Minecraft.getMinecraft().getResourceManager();
-            if (manager instanceof net.minecraft.client.resources.SimpleReloadableResourceManager) {
-                java.util.Map<String, net.minecraft.client.resources.FallbackResourceManager> domainManagers = ReflectionHelper.getPrivateValue(net.minecraft.client.resources.SimpleReloadableResourceManager.class, (net.minecraft.client.resources.SimpleReloadableResourceManager) manager, "domainResourceManagers", "field_110548_a");
-                net.minecraft.client.resources.FallbackResourceManager fallback = domainManagers.get("modularcontents");
+            IResourceManager manager = Minecraft.getMinecraft().getResourceManager();
+            if (manager instanceof SimpleReloadableResourceManager) {
+                Map<String, FallbackResourceManager> domainManagers = ReflectionHelper.getPrivateValue(net.minecraft.client.resources.SimpleReloadableResourceManager.class, (net.minecraft.client.resources.SimpleReloadableResourceManager) manager, "domainResourceManagers", "field_110548_a");
+                FallbackResourceManager fallback = domainManagers.get("modularcontents");
                 if (fallback != null) {
                     fallback.addResourcePack(pack);
                 } else {
-                    fallback = new net.minecraft.client.resources.FallbackResourceManager(new net.minecraft.client.resources.data.MetadataSerializer());
+                    fallback = new FallbackResourceManager(new MetadataSerializer());
                     fallback.addResourcePack(pack);
                     domainManagers.put("modularcontents", fallback);
                 }

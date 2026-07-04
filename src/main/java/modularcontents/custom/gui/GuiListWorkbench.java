@@ -41,6 +41,8 @@ public class GuiListWorkbench extends GuiContainer {
     private static final int COL_TEXT = 0xFFDDDDDD;
     private static final int COL_TEXT_DIM = 0xFF888888;
     private static final int COL_LINE = 0xFF333333;
+    private static final int COL_CRAFTABLE = 0xFF55DD55;
+    private static final int COL_CRAFTABLE_DIM = 0xFF2A4A2A;
 
     public static class FlatButton extends GuiButton {
         public FlatButton(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText) {
@@ -91,6 +93,9 @@ public class GuiListWorkbench extends GuiContainer {
     private static final int LIST_HEIGHT = 110;
     private static final int RECIPE_ROW_HEIGHT = 20;
 
+    private static final int GRID_COLS = 5;
+    private static final int GRID_CELL = 22;
+
     private static final int REQ_TOP = 62;
     private static final int REQ_HEIGHT = 56;
     private static final int REQ_ROW_HEIGHT = 14;
@@ -129,7 +134,10 @@ public class GuiListWorkbench extends GuiContainer {
     private GuiButton btnFavorite;
     private GuiButton btnMinus;
     private GuiButton btnPlus;
+    private GuiButton btnViewMode;
     private GuiTextField searchField;
+
+    private boolean gridMode = false;
 
     private int selectedRecipeIndex = -1;
     private int craftAmount = 1;
@@ -205,6 +213,19 @@ public class GuiListWorkbench extends GuiContainer {
                     .collect(Collectors.toList());
         }
 
+        currentRecipes = currentRecipes.stream()
+                .sorted((a, b) -> {
+                    boolean ca = isCraftable(a);
+                    boolean cb = isCraftable(b);
+                    if (ca != cb) return ca ? -1 : 1;
+                    ItemStack ra = a.getPrimaryResult();
+                    ItemStack rb = b.getPrimaryResult();
+                    String na = ra.isEmpty() ? "" : ra.getDisplayName();
+                    String nb = rb.isEmpty() ? "" : rb.getDisplayName();
+                    return na.compareToIgnoreCase(nb);
+                })
+                .collect(Collectors.toList());
+
         scrollPos = 0.0f;
         scrollTarget = 0.0f;
         reqScrollPos = 0.0f;
@@ -228,14 +249,17 @@ public class GuiListWorkbench extends GuiContainer {
 
         btnCraft = new FlatButton(0, guiLeft + 140, guiTop + 138, 58, 14, "Craft");
 
+        btnViewMode = new FlatButton(10, guiLeft + 109, guiTop + 21, 16, 12, gridMode ? "G" : "L");
+
         this.buttonList.add(btnCraft);
         this.buttonList.add(btnCatPrev);
         this.buttonList.add(btnCatNext);
         this.buttonList.add(btnFavorite);
         this.buttonList.add(btnMinus);
         this.buttonList.add(btnPlus);
+        this.buttonList.add(btnViewMode);
 
-        searchField = new GuiTextField(7, this.fontRenderer, guiLeft + 10, guiTop + 23, 110, 10);
+        searchField = new GuiTextField(7, this.fontRenderer, guiLeft + 10, guiTop + 23, 92, 10);
         searchField.setMaxStringLength(30);
         searchField.setEnableBackgroundDrawing(false);
         searchField.setTextColor(16777215);
@@ -261,7 +285,10 @@ public class GuiListWorkbench extends GuiContainer {
     }
 
     private int getMaxScroll() {
-        return Math.max(0, currentRecipes.size() * RECIPE_ROW_HEIGHT - LIST_HEIGHT);
+        int contentHeight = gridMode
+                ? ((currentRecipes.size() + GRID_COLS - 1) / GRID_COLS) * GRID_CELL
+                : currentRecipes.size() * RECIPE_ROW_HEIGHT;
+        return Math.max(0, contentHeight - LIST_HEIGHT);
     }
 
     private int getMaxReqScroll() {
@@ -299,8 +326,9 @@ public class GuiListWorkbench extends GuiContainer {
                 }
             } else if (inPanelY && mouseX >= guiLeft + LEFT_X0 && mouseX <= guiLeft + LEFT_X1) {
                 int max = getMaxScroll();
+                int step = gridMode ? GRID_CELL : RECIPE_ROW_HEIGHT;
                 if (max > 0) {
-                    scrollTarget = Math.max(0.0f, Math.min(scrollTarget - notches * RECIPE_ROW_HEIGHT, max));
+                    scrollTarget = Math.max(0.0f, Math.min(scrollTarget - notches * step, max));
                 }
             }
         }
@@ -341,6 +369,10 @@ public class GuiListWorkbench extends GuiContainer {
             btnMinus.visible = false;
             btnPlus.visible = false;
         }
+    }
+
+    private boolean isCraftable(ListWorkbenchRecipe recipe) {
+        return getMaxAffordable(recipe) > 0;
     }
 
     private int getMaxAffordable(ListWorkbenchRecipe recipe) {
@@ -406,6 +438,11 @@ public class GuiListWorkbench extends GuiContainer {
             craftAmount--;
         } else if (button.id == 9) {
             craftAmount++;
+        } else if (button.id == 10) {
+            gridMode = !gridMode;
+            btnViewMode.displayString = gridMode ? "G" : "L";
+            scrollTarget = Math.min(scrollTarget, getMaxScroll());
+            scrollPos = scrollTarget;
         }
     }
 
@@ -429,6 +466,16 @@ public class GuiListWorkbench extends GuiContainer {
         this.drawDefaultBackground();
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.renderHoveredToolTip(mouseX, mouseY);
+
+        if (gridMode) {
+            int hoverIndex = getGridIndexAt(mouseX, mouseY);
+            if (hoverIndex >= 0) {
+                ItemStack hoverResult = currentRecipes.get(hoverIndex).getPrimaryResult();
+                if (!hoverResult.isEmpty()) {
+                    this.renderToolTip(hoverResult, mouseX, mouseY);
+                }
+            }
+        }
 
         int qy = guiTop + QUEUE_Y;
         for (int i = 0; i < TileEntityListWorkbench.QUEUE_SIZE; i++) {
@@ -455,6 +502,100 @@ public class GuiListWorkbench extends GuiContainer {
         drawRect(x, y, x + 16, y + 16, COL_SLOT_BG);
         drawRect(x, y, x + 16, y + 1, 0x88000000);
         drawRect(x, y, x + 1, y + 16, 0x88000000);
+    }
+
+    private void drawListRecipes(int listTop, int mouseX, int mouseY) {
+        int firstRow = Math.max(0, (int) (scrollPos / RECIPE_ROW_HEIGHT));
+        int lastRow = Math.min(currentRecipes.size() - 1, (int) ((scrollPos + LIST_HEIGHT) / RECIPE_ROW_HEIGHT));
+
+        for (int index = firstRow; index <= lastRow; index++) {
+            ListWorkbenchRecipe recipe = currentRecipes.get(index);
+            int rowY = listTop + index * RECIPE_ROW_HEIGHT;
+            float visualY = rowY - scrollPos;
+
+            boolean isHovered = mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121
+                    && mouseY >= visualY && mouseY <= visualY + 19
+                    && mouseY >= listTop && mouseY <= listTop + LIST_HEIGHT;
+            boolean craftable = isCraftable(recipe);
+            int bgBorder = (index == selectedRecipeIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE_DIM : COL_BORDER_DARK));
+            int bgFill = (index == selectedRecipeIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
+
+            drawRect(guiLeft + 6, rowY, guiLeft + 122, rowY + 19, bgBorder);
+            drawRect(guiLeft + 7, rowY + 1, guiLeft + 121, rowY + 18, bgFill);
+
+            if (craftable && index != selectedRecipeIndex) {
+                drawRect(guiLeft + 7, rowY + 1, guiLeft + 8, rowY + 18, COL_CRAFTABLE);
+            }
+
+            ItemStack result = recipe.getPrimaryResult();
+            if (!result.isEmpty()) {
+                GlStateManager.pushMatrix();
+                GlStateManager.scale(0.75f, 0.75f, 1.0f);
+                RenderHelper.enableGUIStandardItemLighting();
+                this.itemRender.renderItemAndEffectIntoGUI(result, (int) ((guiLeft + 10) / 0.75f), (int) ((rowY + 3) / 0.75f));
+                RenderHelper.disableStandardItemLighting();
+                GlStateManager.popMatrix();
+
+                String name = this.fontRenderer.trimStringToWidth(result.getDisplayName(), 92);
+                int tColor = (index == selectedRecipeIndex) ? COL_ACCENT : (craftable ? COL_CRAFTABLE : COL_TEXT);
+                this.fontRenderer.drawString(name, guiLeft + 26, rowY + 6, tColor);
+            }
+        }
+    }
+
+    private void drawGridRecipes(int listTop, int mouseX, int mouseY) {
+        int gridLeft = guiLeft + 8;
+
+        int firstRow = Math.max(0, (int) (scrollPos / GRID_CELL));
+        int lastRow = (int) ((scrollPos + LIST_HEIGHT) / GRID_CELL);
+        int firstIndex = firstRow * GRID_COLS;
+        int lastIndex = Math.min(currentRecipes.size() - 1, (lastRow + 1) * GRID_COLS - 1);
+
+        for (int index = firstIndex; index <= lastIndex; index++) {
+            ListWorkbenchRecipe recipe = currentRecipes.get(index);
+            ItemStack result = recipe.getPrimaryResult();
+            if (result.isEmpty()) continue;
+
+            int col = index % GRID_COLS;
+            int row = index / GRID_COLS;
+            int cx = gridLeft + col * GRID_CELL;
+            int cy = listTop + row * GRID_CELL;
+            float visualY = cy - scrollPos;
+
+            boolean isHovered = mouseX >= cx && mouseX < cx + 20
+                    && mouseY >= visualY && mouseY < visualY + 20
+                    && mouseY >= listTop && mouseY <= listTop + LIST_HEIGHT;
+            boolean craftable = isCraftable(recipe);
+            int bgBorder = (index == selectedRecipeIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE : COL_BORDER_DARK));
+            int bgFill = (index == selectedRecipeIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
+
+            drawRect(cx, cy, cx + 20, cy + 20, bgBorder);
+            drawRect(cx + 1, cy + 1, cx + 19, cy + 19, bgFill);
+
+            RenderHelper.enableGUIStandardItemLighting();
+            this.itemRender.renderItemAndEffectIntoGUI(result, cx + 2, cy + 2);
+            RenderHelper.disableStandardItemLighting();
+        }
+    }
+
+    private int getGridIndexAt(int mouseX, int mouseY) {
+        int listTop = guiTop + LIST_TOP;
+        if (mouseY < listTop || mouseY >= listTop + LIST_HEIGHT) return -1;
+
+        int gridLeft = guiLeft + 8;
+        int localX = mouseX - gridLeft;
+        if (localX < 0) return -1;
+
+        int col = localX / GRID_CELL;
+        if (col < 0 || col >= GRID_COLS || localX - col * GRID_CELL >= 20) return -1;
+
+        int row = (int) ((mouseY - listTop + scrollPos) / GRID_CELL);
+        float cellTop = listTop + row * GRID_CELL - scrollPos;
+        if (mouseY >= cellTop + 20) return -1;
+
+        int index = row * GRID_COLS + col;
+        if (index < 0 || index >= currentRecipes.size()) return -1;
+        return index;
     }
 
     @Override
@@ -517,9 +658,9 @@ public class GuiListWorkbench extends GuiContainer {
             drawSlotBox(invX + k * 18, guiTop + 216);
         }
 
-        drawRect(guiLeft + 7, guiTop + 21, guiLeft + 125, guiTop + 33, COL_BORDER);
-        drawRect(guiLeft + 8, guiTop + 22, guiLeft + 124, guiTop + 32, COL_PANEL_L);
-        drawRect(guiLeft + 8, guiTop + 22, guiLeft + 124, guiTop + 23, 0x55000000);
+        drawRect(guiLeft + 7, guiTop + 21, guiLeft + 106, guiTop + 33, COL_BORDER);
+        drawRect(guiLeft + 8, guiTop + 22, guiLeft + 105, guiTop + 32, COL_PANEL_L);
+        drawRect(guiLeft + 8, guiTop + 22, guiLeft + 105, guiTop + 23, 0x55000000);
         searchField.drawTextBox();
 
         if (!categories.isEmpty()) {
@@ -547,36 +688,10 @@ public class GuiListWorkbench extends GuiContainer {
             GlStateManager.pushMatrix();
             GlStateManager.translate(0.0f, -scrollPos, 0.0f);
 
-            int firstRow = Math.max(0, (int) (scrollPos / RECIPE_ROW_HEIGHT));
-            int lastRow = Math.min(currentRecipes.size() - 1, (int) ((scrollPos + LIST_HEIGHT) / RECIPE_ROW_HEIGHT));
-
-            for (int index = firstRow; index <= lastRow; index++) {
-                ListWorkbenchRecipe recipe = currentRecipes.get(index);
-                int rowY = listTop + index * RECIPE_ROW_HEIGHT;
-                float visualY = rowY - scrollPos;
-
-                boolean isHovered = mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121
-                        && mouseY >= visualY && mouseY <= visualY + 19
-                        && mouseY >= listTop && mouseY <= listTop + LIST_HEIGHT;
-                int bgBorder = (index == selectedRecipeIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : COL_BORDER_DARK);
-                int bgFill = (index == selectedRecipeIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : 0xFF181818);
-
-                drawRect(guiLeft + 6, rowY, guiLeft + 122, rowY + 19, bgBorder);
-                drawRect(guiLeft + 7, rowY + 1, guiLeft + 121, rowY + 18, bgFill);
-
-                ItemStack result = recipe.getPrimaryResult();
-                if (!result.isEmpty()) {
-                    GlStateManager.pushMatrix();
-                    GlStateManager.scale(0.75f, 0.75f, 1.0f);
-                    RenderHelper.enableGUIStandardItemLighting();
-                    this.itemRender.renderItemAndEffectIntoGUI(result, (int) ((guiLeft + 10) / 0.75f), (int) ((rowY + 3) / 0.75f));
-                    RenderHelper.disableStandardItemLighting();
-                    GlStateManager.popMatrix();
-
-                    String name = this.fontRenderer.trimStringToWidth(result.getDisplayName(), 92);
-                    int tColor = (index == selectedRecipeIndex) ? COL_ACCENT : COL_TEXT;
-                    this.fontRenderer.drawString(name, guiLeft + 26, rowY + 6, tColor);
-                }
+            if (gridMode) {
+                drawGridRecipes(listTop, mouseX, mouseY);
+            } else {
+                drawListRecipes(listTop, mouseX, mouseY);
             }
 
             GlStateManager.popMatrix();
@@ -836,7 +951,15 @@ public class GuiListWorkbench extends GuiContainer {
                 }
             }
 
-            if (mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121 && mouseY >= listTop && mouseY < listTop + LIST_HEIGHT) {
+            if (gridMode) {
+                int index = getGridIndexAt(mouseX, mouseY);
+                if (index >= 0) {
+                    selectedRecipeIndex = index;
+                    craftAmount = 1;
+                    reqScrollPos = 0.0f;
+                    reqScrollTarget = 0.0f;
+                }
+            } else if (mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121 && mouseY >= listTop && mouseY < listTop + LIST_HEIGHT) {
                 int index = (int) ((mouseY - listTop + scrollPos) / RECIPE_ROW_HEIGHT);
                 if (index >= 0 && index < currentRecipes.size()) {
                     float rowY = listTop + index * RECIPE_ROW_HEIGHT - scrollPos;
