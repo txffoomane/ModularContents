@@ -8,6 +8,7 @@ public class IngredientStack {
     public String item;
     public int count = 1;
     public int meta = 0;
+    public float chance = 100.0f;
 
     public ItemStack toItemStack() {
         if (item == null || item.isEmpty()) {

@@ -19,29 +19,26 @@ public class ContainerListWorkbench extends Container {
     public ContainerListWorkbench(InventoryPlayer playerInventory, TileEntityListWorkbench te) {
         this.te = te;
 
-        // 3 Output Slots - positioned far right
-        int outX = 194;
-        int outY = 106;
+        int outX = 260;
+        int outY = 122;
         for (int i = 0; i < 3; i++) {
             this.addSlotToContainer(new SlotItemHandler(te.outputSlots, i, outX + i * 18, outY) {
                 @Override
                 public boolean isItemValid(ItemStack stack) {
-                    return false; // Can only take items out
+                    return false;
                 }
             });
         }
 
-        // Player inventory
-        int invX = 48;
-        int invY = 157;
+        int invX = 79;
+        int invY = 158;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
                 this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, invX + j * 18, invY + i * 18));
             }
         }
 
-        // Player hotbar
-        int hotbarY = 215;
+        int hotbarY = 216;
         for (int k = 0; k < 9; ++k) {
             this.addSlotToContainer(new Slot(playerInventory, k, invX + k * 18, hotbarY));
         }

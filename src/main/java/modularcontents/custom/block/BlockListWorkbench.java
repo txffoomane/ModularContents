@@ -28,6 +28,8 @@ public class BlockListWorkbench extends Block implements ITileEntityProvider {
     public static final CustomPropertyBool CRAFTING = CustomPropertyBool.create("crafting");
     public static final CustomPropertyDirection FACING = CustomPropertyDirection.create("facing", net.minecraft.util.EnumFacing.Plane.HORIZONTAL);
 
+    public static boolean isBreakingMultiblock = false;
+
     // Hitboxes for 2x1x1 dimensions
     // "Центр коллизии слева" - значит якорный блок находится слева, а вторая половина уходит вправо (относительно взгляда игрока)
     private static final AxisAlignedBB AABB_NORTH = new AxisAlignedBB(-1.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
@@ -84,10 +86,14 @@ public class BlockListWorkbench extends Block implements ITileEntityProvider {
         return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite()).withProperty(CRAFTING, false);
     }
 
+    public BlockPos getPartPos(IBlockState state, BlockPos pos) {
+        return pos.offset(state.getValue(FACING).rotateYCCW());
+    }
+
     @Override
     public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
         if (state.getValue(CRAFTING)) {
-            return 2; // Emits light level 2 when crafting
+            return 5;
         }
         return super.getLightValue(state, world, pos);
     }
@@ -123,6 +129,19 @@ public class BlockListWorkbench extends Block implements ITileEntityProvider {
                 }
             }
         }
+
+        boolean wasBreaking = isBreakingMultiblock;
+        isBreakingMultiblock = true;
+        try {
+            BlockPos partPos = getPartPos(state, pos);
+            IBlockState partState = worldIn.getBlockState(partPos);
+            if (partState.getBlock() instanceof BlockListWorkbenchPart) {
+                worldIn.setBlockState(partPos, net.minecraft.init.Blocks.AIR.getDefaultState(), 3);
+            }
+        } finally {
+            isBreakingMultiblock = wasBreaking;
+        }
+
         super.breakBlock(worldIn, pos, state);
     }
 

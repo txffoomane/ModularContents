@@ -1,0 +1,27 @@
+{
+  "id": "vanilla_fire_charge",
+  "category": "Ammo",
+  "output": {
+    "item": "minecraft:fire_charge",
+    "count": 3,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:blaze_powder",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:coal",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:gunpowder",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 80
+}

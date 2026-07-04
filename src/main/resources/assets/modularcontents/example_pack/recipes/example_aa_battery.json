@@ -1,0 +1,22 @@
+{
+    "id": "example_insulating_tape",
+    "category": "Electronics",
+    "output": {
+        "item": "modularcontents:kektape_duct_tape",
+        "count": 1,
+        "meta": 0
+    },
+    "inputs": [
+        {
+            "item": "modularcontents:screwdriver",
+            "count": 2,
+            "meta": 0
+        },
+        {
+            "item": "modularcontents:duct_tape",
+            "count": 1,
+            "meta": 0
+        }
+    ],
+    "craftingTime": 200
+}

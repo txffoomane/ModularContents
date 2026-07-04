@@ -16,6 +16,7 @@ public class ListWorkbenchRecipe {
 
     public List<IngredientStack> inputs;
     public int craftingTime = 200;
+    public int minDrops = 0;
 
     public List<ItemStack> getResults() {
         List<ItemStack> results = new ArrayList<>();
@@ -31,6 +32,43 @@ public class ListWorkbenchRecipe {
             if (!item.isEmpty()) results.add(item);
         }
         return results;
+    }
+
+    public List<ItemStack> rollResults(java.util.Random rand) {
+        List<ItemStack> results = new ArrayList<>();
+        if (outputs != null && !outputs.isEmpty()) {
+            List<IngredientStack> missed = new ArrayList<>();
+            for (IngredientStack stack : outputs) {
+                if (stack == null) continue;
+                ItemStack item = stack.toItemStack();
+                if (item.isEmpty()) continue;
+                if (stack.chance >= 100.0f || rand.nextFloat() * 100.0f < stack.chance) {
+                    results.add(item);
+                } else {
+                    missed.add(stack);
+                }
+            }
+            if (minDrops > 0 && results.size() < minDrops && !missed.isEmpty()) {
+                missed.sort((a, b) -> Float.compare(b.chance, a.chance));
+                for (IngredientStack stack : missed) {
+                    if (results.size() >= minDrops) break;
+                    ItemStack item = stack.toItemStack();
+                    if (!item.isEmpty()) results.add(item);
+                }
+            }
+        } else if (output != null) {
+            ItemStack item = output.toItemStack();
+            if (!item.isEmpty()) results.add(item);
+        }
+        return results;
+    }
+
+    public boolean hasChanceOutputs() {
+        if (outputs == null) return false;
+        for (IngredientStack stack : outputs) {
+            if (stack != null && stack.chance < 100.0f) return true;
+        }
+        return false;
     }
 
     public ItemStack getPrimaryResult() {

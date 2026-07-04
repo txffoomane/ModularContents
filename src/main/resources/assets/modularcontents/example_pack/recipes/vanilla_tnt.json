@@ -1,0 +1,37 @@
+{
+  "id": "vanilla_tnt",
+  "category": "Weapons",
+  "output": {
+    "item": "minecraft:tnt",
+    "count": 1,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:gunpowder",
+      "count": 5,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:sand",
+      "count": 4,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:paper",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:string",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:coal",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 160
+}

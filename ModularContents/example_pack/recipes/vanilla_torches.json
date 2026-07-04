@@ -1,0 +1,17 @@
+{
+  "id": "vanilla_torches",
+  "category": "Basics",
+  "output": {
+    "item": "minecraft:torch",
+    "count": 8,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:coal",
+      "count": 2,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 40
+}

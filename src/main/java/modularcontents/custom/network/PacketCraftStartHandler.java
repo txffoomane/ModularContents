@@ -33,14 +33,14 @@ public class PacketCraftStartHandler implements IMessageHandler<PacketCraftStart
             if (!(te instanceof TileEntityListWorkbench)) return;
             TileEntityListWorkbench workbench = (TileEntityListWorkbench) te;
 
-            if (workbench.isCrafting()) return;
+            if (!workbench.hasFreeQueueSlot()) return;
 
             ListWorkbenchRecipe recipe = ListWorkbenchRecipeManager.getRecipe(message.recipeId);
             if (recipe == null) return;
 
             if (hasIngredients(player, recipe, message.amount)) {
                 consumeAndBufferIngredients(player, recipe, workbench, message.amount);
-                workbench.startCrafting(recipe.id, recipe.craftingTime, message.amount);
+                workbench.enqueueCraft(recipe.id, recipe.craftingTime, message.amount);
             }
         });
         return null;

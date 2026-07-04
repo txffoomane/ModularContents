@@ -1,0 +1,52 @@
+{
+  "id": "vanilla_beacon",
+  "category": "Advanced",
+  "output": {
+    "item": "minecraft:beacon",
+    "count": 1,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:glass",
+      "count": 5,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:obsidian",
+      "count": 3,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:emerald",
+      "count": 1,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:gold_ingot",
+      "count": 2,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:redstone",
+      "count": 4,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:glowstone_dust",
+      "count": 4,
+      "meta": 0
+    },
+    {
+      "item": "minecraft:ender_pearl",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 300
+}

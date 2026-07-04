@@ -78,7 +78,8 @@ public class ModularcontentsMod implements IGuiHandler {
     };
 
     public static Block custom_workbench = new BlockListWorkbench().setRegistryName("custom_workbench").setUnlocalizedName("custom_workbench");
-    public static Item custom_workbench_item = new ItemBlock(custom_workbench).setRegistryName(custom_workbench.getRegistryName());
+    public static Block custom_workbench_part = new modularcontents.custom.block.BlockListWorkbenchPart(custom_workbench).setRegistryName("custom_workbench_part").setUnlocalizedName("custom_workbench_part");
+    public static Item custom_workbench_item = new modularcontents.custom.block.ItemBlockListWorkbench(custom_workbench).setRegistryName(custom_workbench.getRegistryName());
 
     public static Block airdrop = new BlockAirdrop();
     public static Item airdrop_item = new ItemBlock(airdrop).setRegistryName(airdrop.getRegistryName());
@@ -157,6 +158,7 @@ public class ModularcontentsMod implements IGuiHandler {
     @SubscribeEvent
     public static void registerBlocks(RegistryEvent.Register<Block> event) {
         event.getRegistry().register(custom_workbench);
+        event.getRegistry().register(custom_workbench_part);
         GameRegistry.registerTileEntity(TileEntityListWorkbench.class, "modularcontents:tile_list_workbench");
 
         event.getRegistry().register(airdrop);
