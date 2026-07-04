@@ -3,26 +3,21 @@ package modularcontents.custom.recipe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import modularcontents.custom.config.ModularContentsConfig;
+import modularcontents.custom.pack.PackZipUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class ListWorkbenchRecipeManager {
     private static final Logger LOGGER = LogManager.getLogger("ModularContents");
@@ -40,19 +35,21 @@ public class ListWorkbenchRecipeManager {
         }
     }
 
+    private static final String[] CONTENT_FOLDERS = {"recipes", "loot_tables/airdrops", "items", "tabs"};
+
     private static boolean hasAnyPack(File rootPacksDir) {
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
         if (packDirs != null) {
             for (File packDir : packDirs) {
-                if (dirHasJsons(new File(packDir, "recipes"))) return true;
-                if (dirHasJsons(new File(new File(packDir, "loot_tables"), "airdrops"))) return true;
+                for (String folder : CONTENT_FOLDERS) {
+                    if (dirHasJsons(new File(packDir, folder))) return true;
+                }
             }
         }
 
-        File[] zips = rootPacksDir.listFiles((d, name) -> isZipName(name));
-        if (zips != null) {
-            for (File zip : zips) {
-                if (zipHasContent(zip)) return true;
+        for (File zip : PackZipUtils.listZips(rootPacksDir)) {
+            for (String folder : CONTENT_FOLDERS) {
+                if (PackZipUtils.zipHasEntryInFolder(zip, folder, ".json")) return true;
             }
         }
         return false;
@@ -62,38 +59,6 @@ public class ListWorkbenchRecipeManager {
         if (!dir.isDirectory()) return false;
         File[] jsons = dir.listFiles((d, name) -> name.endsWith(".json"));
         return jsons != null && jsons.length > 0;
-    }
-
-    private static boolean isZipName(String name) {
-        String lower = name.toLowerCase(Locale.ROOT);
-        return lower.endsWith(".zip");
-    }
-
-    private static boolean isRecipeEntry(String entryName) {
-        String normalized = entryName.replace('\\', '/');
-        String lower = normalized.toLowerCase(Locale.ROOT);
-        return (lower.startsWith("recipes/") || lower.contains("/recipes/")) && lower.endsWith(".json");
-    }
-
-    private static boolean zipHasContent(File zipFile) {
-        try (ZipFile zip = new ZipFile(zipFile)) {
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (!entry.isDirectory() && (isRecipeEntry(entry.getName()) || isAirdropLootEntry(entry.getName()))) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to read pack archive: " + zipFile.getName(), e);
-        }
-        return false;
-    }
-
-    public static boolean isAirdropLootEntry(String entryName) {
-        String normalized = entryName.replace('\\', '/');
-        String lower = normalized.toLowerCase(Locale.ROOT);
-        return (lower.startsWith("loot_tables/airdrops/") || lower.contains("/loot_tables/airdrops/")) && lower.endsWith(".json");
     }
 
     public static void loadRecipes(File gameDir) {
@@ -114,35 +79,14 @@ public class ListWorkbenchRecipeManager {
             }
         }
 
-        File[] zips = rootPacksDir.listFiles((d, name) -> isZipName(name));
-        if (zips != null) {
-            for (File zip : zips) {
-                loadRecipesFromZip(zip);
-            }
-        }
+        PackZipUtils.loadJsonEntries(rootPacksDir, "recipes", (fileName, reader, packName) -> loadRecipe(reader, packName));
     }
 
-    private static void loadRecipesFromZip(File zipFile) {
-        String packName = zipFile.getName();
-        try (ZipFile zip = new ZipFile(zipFile)) {
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (entry.isDirectory() || !isRecipeEntry(entry.getName())) {
-                    continue;
-                }
-                try (Reader reader = new InputStreamReader(zip.getInputStream(entry), StandardCharsets.UTF_8)) {
-                    ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
-                    if (recipe != null && recipe.id != null) {
-                        RECIPES.put(recipe.id, recipe);
-                        LOGGER.info("Loaded custom workbench recipe '" + recipe.id + "' from pack '" + packName + "'");
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Failed to load recipe: " + entry.getName() + " in pack: " + packName, e);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to open pack archive: " + packName, e);
+    private static void loadRecipe(Reader reader, String packName) {
+        ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
+        if (recipe != null && recipe.id != null) {
+            RECIPES.put(recipe.id, recipe);
+            LOGGER.info("Loaded custom workbench recipe '" + recipe.id + "' from pack '" + packName + "'");
         }
     }
 

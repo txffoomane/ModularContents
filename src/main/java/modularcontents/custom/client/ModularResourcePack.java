@@ -2,6 +2,7 @@ package modularcontents.custom.client;
 
 import com.google.common.collect.ImmutableSet;
 import modularcontents.custom.item.CustomItemManager;
+import modularcontents.custom.pack.PackZipUtils;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.data.IMetadataSection;
 import net.minecraft.client.resources.data.MetadataSerializer;
@@ -44,31 +45,10 @@ public class ModularResourcePack implements IResourcePack {
         }
 
         // 2. Load PNG textures directly from content packs
-        if (path.startsWith("textures/items/") && path.endsWith(".png")) {
-            String textureName = path.substring("textures/items/".length());
-            File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
-            if (packDirs != null) {
-                for (File packDir : packDirs) {
-                    File textureFile = new File(packDir, "textures/items/" + textureName);
-                    if (textureFile.exists()) {
-                        System.out.println("[ModularContents] Loaded texture: " + textureName + " from " + textureFile.getAbsolutePath());
-                        return new FileInputStream(textureFile);
-                    }
-                }
-            }
-        }
-
-        // 3. Load block PNG textures directly from content packs
-        if (path.startsWith("textures/blocks/") && path.endsWith(".png")) {
-            String textureName = path.substring("textures/blocks/".length());
-            File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
-            if (packDirs != null) {
-                for (File packDir : packDirs) {
-                    File textureFile = new File(packDir, "textures/blocks/" + textureName);
-                    if (textureFile.exists()) {
-                        return new FileInputStream(textureFile);
-                    }
-                }
+        if (path.startsWith("textures/") && path.endsWith(".png")) {
+            InputStream stream = findTexture(path);
+            if (stream != null) {
+                return stream;
             }
         }
 
@@ -90,34 +70,36 @@ public class ModularResourcePack implements IResourcePack {
         }
 
         // Texture intercept check
-        if (path.startsWith("textures/items/") && path.endsWith(".png")) {
-            String textureName = path.substring("textures/items/".length());
-            File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
-            if (packDirs != null) {
-                for (File packDir : packDirs) {
-                    File textureFile = new File(packDir, "textures/items/" + textureName);
-                    if (textureFile.exists()) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        // Add intercept for block textures from content packs if needed
-        if (path.startsWith("textures/blocks/") && path.endsWith(".png")) {
-            String textureName = path.substring("textures/blocks/".length());
-            File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
-            if (packDirs != null) {
-                for (File packDir : packDirs) {
-                    File textureFile = new File(packDir, "textures/blocks/" + textureName);
-                    if (textureFile.exists()) {
-                        return true;
-                    }
-                }
-            }
+        if (path.startsWith("textures/") && path.endsWith(".png")) {
+            return textureExists(path);
         }
 
         return false;
+    }
+
+    private InputStream findTexture(String path) throws IOException {
+        File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
+        if (packDirs != null) {
+            for (File packDir : packDirs) {
+                File textureFile = new File(packDir, path);
+                if (textureFile.exists()) {
+                    return new FileInputStream(textureFile);
+                }
+            }
+        }
+        return PackZipUtils.findZipResource(rootPacksDir, path);
+    }
+
+    private boolean textureExists(String path) {
+        File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
+        if (packDirs != null) {
+            for (File packDir : packDirs) {
+                if (new File(packDir, path).exists()) {
+                    return true;
+                }
+            }
+        }
+        return PackZipUtils.zipResourceExists(rootPacksDir, path);
     }
 
     @Override
