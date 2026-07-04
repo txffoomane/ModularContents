@@ -80,14 +80,7 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
     }
 
     private boolean isItemMatching(IngredientStack ingredient, ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        ItemStack required = ingredient.toItemStack();
-        if (required.isEmpty()) return false;
-
-        if (required.getItem() != stack.getItem()) return false;
-        if (ingredient.meta != net.minecraftforge.oredict.OreDictionary.WILDCARD_VALUE && ingredient.meta != stack.getMetadata()) return false;
-
-        return true;
+        return ingredient.matches(stack);
     }
 
     @Override

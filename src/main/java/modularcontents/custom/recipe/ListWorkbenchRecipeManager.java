@@ -64,7 +64,7 @@ public class ListWorkbenchRecipeManager {
     private static boolean isRecipeEntry(String entryName) {
         String normalized = entryName.replace('\\', '/');
         String lower = normalized.toLowerCase(java.util.Locale.ROOT);
-        return lower.startsWith("recipes/") && lower.endsWith(".json");
+        return (lower.startsWith("recipes/") || lower.contains("/recipes/")) && lower.endsWith(".json");
     }
 
     private static boolean zipHasRecipes(File zipFile) {
@@ -152,6 +152,7 @@ public class ListWorkbenchRecipeManager {
     private static final String[] EXAMPLE_PACK_RECIPES = {
             "example_aa_battery.json",
             "example_arrows.json",
+            "example_nbt_sword.json",
             "vanilla_torches.json",
             "vanilla_book.json",
             "vanilla_fire_charge.json",
