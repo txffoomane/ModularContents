@@ -9,7 +9,7 @@ public class PacketSyncContentHandler implements IMessageHandler<PacketSyncConte
 
     @Override
     public IMessage onMessage(PacketSyncContent message, MessageContext ctx) {
-        ModularcontentsMod.proxy.handleContentSync(message.recipesJson, message.tabsJson, message.requiredPacksJson);
+        ModularcontentsMod.proxy.handleContentSync(message.recipesJson, message.tabsJson, message.requiredPacksJson, message.equipmentJson);
         return null;
     }
 }

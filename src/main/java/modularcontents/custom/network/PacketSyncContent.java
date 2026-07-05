@@ -14,14 +14,16 @@ public class PacketSyncContent implements IMessage {
     public String recipesJson = "";
     public String tabsJson = "";
     public String requiredPacksJson = "";
+    public String equipmentJson = "";
 
     public PacketSyncContent() {
     }
 
-    public PacketSyncContent(String recipesJson, String tabsJson, String requiredPacksJson) {
+    public PacketSyncContent(String recipesJson, String tabsJson, String requiredPacksJson, String equipmentJson) {
         this.recipesJson = recipesJson != null ? recipesJson : "";
         this.tabsJson = tabsJson != null ? tabsJson : "";
         this.requiredPacksJson = requiredPacksJson != null ? requiredPacksJson : "";
+        this.equipmentJson = equipmentJson != null ? equipmentJson : "";
     }
 
     @Override
@@ -29,6 +31,7 @@ public class PacketSyncContent implements IMessage {
         writeCompressed(buf, recipesJson);
         writeCompressed(buf, tabsJson);
         writeCompressed(buf, requiredPacksJson);
+        writeCompressed(buf, equipmentJson);
     }
 
     @Override
@@ -36,6 +39,7 @@ public class PacketSyncContent implements IMessage {
         recipesJson = readCompressed(buf);
         tabsJson = readCompressed(buf);
         requiredPacksJson = readCompressed(buf);
+        equipmentJson = readCompressed(buf);
     }
 
     private static void writeCompressed(ByteBuf buf, String value) {

@@ -5,6 +5,7 @@ import modularcontents.custom.entity.EntityAirdrop;
 import modularcontents.custom.network.PacketSyncContent;
 import modularcontents.custom.recipe.ListWorkbenchRecipeManager;
 import modularcontents.custom.loot.AirdropLootManager;
+import modularcontents.custom.loot.EquipmentManager;
 import net.minecraft.command.CommandBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.command.CommandException;
@@ -51,6 +52,8 @@ public class CommandModularContents extends CommandBase {
             ListWorkbenchRecipeManager.loadRecipes(server.getDataDirectory());
             // Reload loot tables
             AirdropLootManager.loadLootTables(server.getDataDirectory());
+            // Reload equipment presets
+            EquipmentManager.loadEquipment(server.getDataDirectory());
 
             PacketSyncContent syncPacket = ModularcontentsMod.buildContentSyncPacket();
             for (EntityPlayerMP player : server.getPlayerList().getPlayers()) {
@@ -59,7 +62,8 @@ public class CommandModularContents extends CommandBase {
 
             int recipeCount = ListWorkbenchRecipeManager.getAllRecipes().size();
             int lootCount = AirdropLootManager.LOOT_TABLES.size();
-            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Successfully reloaded " + recipeCount + " recipes and " + lootCount + " loot tables!"));
+            int equipmentCount = EquipmentManager.EQUIPMENT.size();
+            sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Successfully reloaded " + recipeCount + " recipes, " + lootCount + " loot tables and " + equipmentCount + " equipment presets!"));
         } else if (args.length > 0 && args[0].equalsIgnoreCase("airdrop")) {
             if (args.length >= 3) {
                 try {

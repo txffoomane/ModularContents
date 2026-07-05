@@ -9,5 +9,5 @@ public class CommonProxy {
 
     public void playAirdropSmokeSound(TileEntityAirdrop te) {}
 
-    public void handleContentSync(String recipesJson, String tabsJson, String requiredPacksJson) {}
+    public void handleContentSync(String recipesJson, String tabsJson, String requiredPacksJson, String equipmentJson) {}
 }

@@ -40,13 +40,16 @@ public class GuiContentCreator extends GuiContainer {
     private static final int TAB_ITEMS = 1;
     private static final int TAB_RECIPES = 2;
     private static final int TAB_TABS = 4;
+    private static final int TAB_ZONE = 6;
 
     private GuiButton btnTabLoot;
     private GuiButton btnTabItems;
     private GuiButton btnTabRecipes;
     private GuiButton btnTabTabs;
+    private GuiButton btnTabZone;
     private GuiButton btnGenerate;
     private GuiButton btnNbtToggle;
+    private GuiButton btnOpenMap;
 
     private GuiTextField txtFileName;
 
@@ -106,19 +109,23 @@ public class GuiContentCreator extends GuiContainer {
 
         Keyboard.enableRepeatEvents(true);
 
-        this.btnTabLoot = new GuiLaptop.FlatButton(0, guiLeft + 8, guiTop + 6, 56, 14, tr("tab.loot"));
-        this.btnTabItems = new GuiLaptop.FlatButton(1, guiLeft + 68, guiTop + 6, 56, 14, tr("tab.items"));
-        this.btnTabRecipes = new GuiLaptop.FlatButton(2, guiLeft + 128, guiTop + 6, 56, 14, tr("tab.recipes"));
-        this.btnTabTabs = new GuiLaptop.FlatButton(4, guiLeft + 188, guiTop + 6, 56, 14, tr("tab.tabs"));
+        this.btnTabLoot = new GuiLaptop.FlatButton(0, guiLeft + 8, guiTop + 6, 50, 14, tr("tab.loot"));
+        this.btnTabItems = new GuiLaptop.FlatButton(1, guiLeft + 60, guiTop + 6, 50, 14, tr("tab.items"));
+        this.btnTabRecipes = new GuiLaptop.FlatButton(2, guiLeft + 112, guiTop + 6, 50, 14, tr("tab.recipes"));
+        this.btnTabTabs = new GuiLaptop.FlatButton(4, guiLeft + 164, guiTop + 6, 50, 14, tr("tab.tabs"));
+        this.btnTabZone = new GuiLaptop.FlatButton(6, guiLeft + 216, guiTop + 6, 50, 14, tr("tab.zone"));
         this.btnGenerate = new GuiLaptop.FlatButton(3, guiLeft + 198, guiTop + 138, 130, 14, tr("generate"));
         this.btnNbtToggle = new GuiLaptop.FlatButton(5, guiLeft + 70, guiTop + 134, 60, 14, tr("nbt.off"));
+        this.btnOpenMap = new GuiLaptop.FlatButton(7, guiLeft + 40, guiTop + 80, 110, 18, tr("open_map"));
 
         this.buttonList.add(btnTabLoot);
         this.buttonList.add(btnTabItems);
         this.buttonList.add(btnTabRecipes);
         this.buttonList.add(btnTabTabs);
+        this.buttonList.add(btnTabZone);
         this.buttonList.add(btnGenerate);
         this.buttonList.add(btnNbtToggle);
+        this.buttonList.add(btnOpenMap);
 
         this.txtFileName = createField(10, 198, 37, 130, 32, "my_file");
 
@@ -183,13 +190,18 @@ public class GuiContentCreator extends GuiContainer {
         btnTabItems.enabled = tab != TAB_ITEMS;
         btnTabRecipes.enabled = tab != TAB_RECIPES;
         btnTabTabs.enabled = tab != TAB_TABS;
+        btnTabZone.enabled = tab != TAB_ZONE;
 
         boolean isLoot = tab == TAB_LOOT;
         boolean isItem = tab == TAB_ITEMS;
         boolean isRecp = tab == TAB_RECIPES;
         boolean isTabs = tab == TAB_TABS;
+        boolean isZone = tab == TAB_ZONE;
 
-        txtFileName.setVisible(true);
+        btnGenerate.visible = !isZone;
+        btnOpenMap.visible = isZone;
+
+        txtFileName.setVisible(!isZone);
         txtWeight.setVisible(isLoot);
         txtItemName.setVisible(isItem);
         txtMaxStack.setVisible(isItem);
@@ -314,6 +326,8 @@ public class GuiContentCreator extends GuiContainer {
             drawRecipesTab();
         } else if (tab == TAB_TABS) {
             drawTabsTab();
+        } else if (tab == TAB_ZONE) {
+            drawZoneTab();
         }
 
         for (GuiTextField field : allFields()) {
@@ -399,6 +413,12 @@ public class GuiContentCreator extends GuiContainer {
         drawRightLabel(tr("label.tab_id"), 28);
         drawRightLabel(tr("label.display_name"), 56);
         drawRightLabel(tr("label.icon"), 84);
+    }
+
+    private void drawZoneTab() {
+        fontRenderer.drawString(tr("header.zone"), guiLeft + 14, guiTop + 31, COL_ACCENT);
+        drawLeftInfo(infoLines("info.zone", 3));
+        drawRightInfo(infoLines("info.zone.right", 8), 30);
     }
 
     private String[] infoLines(String key, int count) {
@@ -510,7 +530,7 @@ public class GuiContentCreator extends GuiContainer {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        if (button.id == 0 || button.id == 1 || button.id == 2 || button.id == 4) {
+        if (button.id == 0 || button.id == 1 || button.id == 2 || button.id == 4 || button.id == 6) {
             container.activeTab = button.id;
             updateTabState();
         } else if (button.id == 3) {
@@ -518,6 +538,8 @@ public class GuiContentCreator extends GuiContainer {
             else if (container.activeTab == TAB_ITEMS) generateItem();
             else if (container.activeTab == TAB_RECIPES) generateRecipe();
             else if (container.activeTab == TAB_TABS) generateTab();
+        } else if (button.id == 7) {
+            this.mc.displayGuiScreen(new GuiZoneEquipment());
         } else if (button.id == 5 && selectedSlot != -1) {
             RecipeSlotSettings set = recipeSettings[selectedSlot];
             set.useNbt = !set.useNbt;

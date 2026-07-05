@@ -13,6 +13,7 @@ import modularcontents.custom.item.ItemRadio;
 import modularcontents.custom.item.ItemSignalFlare;
 import modularcontents.custom.keybind.KeybindManager;
 import modularcontents.custom.loot.AirdropLootManager;
+import modularcontents.custom.loot.EquipmentManager;
 import modularcontents.custom.pack.PackZipUtils;
 import modularcontents.custom.tab.CustomTabManager;
 import modularcontents.proxy.CommonProxy;
@@ -91,6 +92,8 @@ import modularcontents.custom.gui.GuiLaptop;
 import modularcontents.custom.event.GlobalAirdropHandler;
 import modularcontents.custom.network.PacketOpenCreator;
 import modularcontents.custom.network.PacketOpenCreatorHandler;
+import modularcontents.custom.network.PacketZoneLoot;
+import modularcontents.custom.network.PacketZoneLootHandler;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import java.util.ArrayList;
@@ -166,6 +169,7 @@ public class ModularcontentsMod implements IGuiHandler {
         PACKET_HANDLER.registerMessage(PacketLaptopAirdropHandler.class, PacketLaptopAirdrop.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketOpenCreatorHandler.class, PacketOpenCreator.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketSyncContentHandler.class, PacketSyncContent.class, packetId++, Side.CLIENT);
+        PACKET_HANDLER.registerMessage(PacketZoneLootHandler.class, PacketZoneLoot.class, packetId++, Side.SERVER);
     }
 
     public static PacketSyncContent buildContentSyncPacket() {
@@ -173,7 +177,7 @@ public class ModularcontentsMod implements IGuiHandler {
         String requiredPacksJson = server != null
                 ? PackZipUtils.getClientRequiredPacksJson(server.getDataDirectory())
                 : "[]";
-        return new PacketSyncContent(ListWorkbenchRecipeManager.toSyncJson(), CustomTabManager.toSyncJson(), requiredPacksJson);
+        return new PacketSyncContent(ListWorkbenchRecipeManager.toSyncJson(), CustomTabManager.toSyncJson(), requiredPacksJson, EquipmentManager.toSyncJson());
     }
 
     @SubscribeEvent
@@ -220,6 +224,7 @@ public class ModularcontentsMod implements IGuiHandler {
         // Load JSON recipes when server starts
         ListWorkbenchRecipeManager.loadRecipes(event.getServer().getDataDirectory());
         AirdropLootManager.loadLootTables(event.getServer().getDataDirectory());
+        EquipmentManager.loadEquipment(event.getServer().getDataDirectory());
 
         // Register in-game commands
         event.registerServerCommand(new CommandModularContents());

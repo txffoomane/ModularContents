@@ -3,6 +3,7 @@ package modularcontents.proxy;
 import modularcontents.custom.block.TileEntityAirdrop;
 import modularcontents.custom.client.SoundAirdropSmoke;
 import modularcontents.custom.client.particle.ParticleAirdropSmoke;
+import modularcontents.custom.loot.EquipmentManager;
 import modularcontents.custom.pack.PackZipUtils;
 import modularcontents.custom.recipe.ListWorkbenchRecipeManager;
 import modularcontents.custom.tab.CustomTabManager;
@@ -27,7 +28,7 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void handleContentSync(String recipesJson, String tabsJson, String requiredPacksJson) {
+    public void handleContentSync(String recipesJson, String tabsJson, String requiredPacksJson, String equipmentJson) {
         Minecraft.getMinecraft().addScheduledTask(() -> {
             Minecraft mc = Minecraft.getMinecraft();
             if (mc.isIntegratedServerRunning()) {
@@ -35,6 +36,7 @@ public class ClientProxy extends CommonProxy {
             }
             ListWorkbenchRecipeManager.applySyncedRecipes(recipesJson);
             CustomTabManager.applySyncedTabs(tabsJson);
+            EquipmentManager.applySynced(equipmentJson);
 
             List<String> missing = PackZipUtils.findMissingPacks(mc.mcDataDir, requiredPacksJson);
             if (!missing.isEmpty() && mc.player != null) {

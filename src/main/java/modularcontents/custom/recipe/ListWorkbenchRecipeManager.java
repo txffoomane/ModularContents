@@ -35,7 +35,7 @@ public class ListWorkbenchRecipeManager {
         }
     }
 
-    private static final String[] CONTENT_FOLDERS = {"recipes", "loot_tables/airdrops", "items", "tabs"};
+    private static final String[] CONTENT_FOLDERS = {"recipes", "loot_tables/airdrops", "loot_tables/equipment", "items", "tabs"};
 
     private static boolean hasAnyPack(File rootPacksDir) {
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
@@ -130,6 +130,12 @@ public class ListWorkbenchRecipeManager {
             "military_loot.json"
     };
 
+    private static final String[] EXAMPLE_PACK_EQUIPMENT = {
+            "armor.json",
+            "gun.json",
+            "medick.json"
+    };
+
     private static void createExamplePack(File rootPacksDir) {
         try {
             File examplePackDir = new File(rootPacksDir, "example_pack");
@@ -137,8 +143,10 @@ public class ListWorkbenchRecipeManager {
                     "/assets/modularcontents/example_pack/recipes/", EXAMPLE_PACK_RECIPES);
             int lootTables = copyExampleResources(new File(new File(examplePackDir, "loot_tables"), "airdrops"),
                     "/assets/modularcontents/example_pack/loot_tables/airdrops/", EXAMPLE_PACK_LOOT_TABLES);
+            int equipment = copyExampleResources(new File(new File(examplePackDir, "loot_tables"), "equipment"),
+                    "/assets/modularcontents/example_pack/loot_tables/equipment/", EXAMPLE_PACK_EQUIPMENT);
 
-            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables) in ModularContents/example_pack");
+            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables, " + equipment + " equipment presets) in ModularContents/example_pack");
         } catch (Exception e) {
             LOGGER.error("Failed to create example content pack", e);
         }
