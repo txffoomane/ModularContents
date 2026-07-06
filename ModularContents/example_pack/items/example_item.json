@@ -1,0 +1,7 @@
+{
+  "id": "example_item",
+  "display_name": "Example Item",
+  "max_stack_size": 64,
+  "creative_tab": "example_tab",
+  "max_damage": 0
+}

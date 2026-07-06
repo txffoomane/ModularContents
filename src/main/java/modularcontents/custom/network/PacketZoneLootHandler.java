@@ -17,6 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import java.util.Iterator;
+import modularcontents.custom.zone.LootZone;
+import modularcontents.custom.zone.LootZoneHandler;
+import modularcontents.custom.zone.LootZoneManager;
 public class PacketZoneLootHandler implements IMessageHandler<PacketZoneLoot, IMessage> {
     private static final int MAX_ZONE_SIZE = 128;
 
@@ -39,6 +43,61 @@ public class PacketZoneLootHandler implements IMessageHandler<PacketZoneLoot, IM
                 player.sendMessage(new TextComponentString(TextFormatting.RED
                         + "Zone too large (max " + MAX_ZONE_SIZE + " x " + MAX_ZONE_SIZE + " blocks)."));
                 return;
+            }
+
+            LootZoneManager manager = LootZoneHandler.get(world);
+
+            if (message.isCreateZone) {
+                if (message.editId != null) {
+                    Iterator<LootZone> it = manager.zones.iterator();
+                    while (it.hasNext()) {
+                        LootZone z = it.next();
+                        if (z.id.equals(message.editId)) {
+                            it.remove();
+                            break;
+                        }
+                    }
+                }
+                LootZone zone = new LootZone();
+                if (message.editId != null) zone.id = message.editId;
+                zone.name = message.name != null ? message.name : "Zone";
+                zone.minX = minX;
+                zone.minZ = minZ;
+                zone.maxX = maxX;
+                zone.maxZ = maxZ;
+                zone.respawnIntervalTicks = message.respawnTime;
+                zone.color = message.color;
+                for (PacketZoneLoot.PresetEntry entry : message.presets) {
+                    zone.presets.put(entry.name, entry.chance);
+                }
+
+                // Track all containers inside the zone bounds at the moment of creation/update
+                for (TileEntity te : world.loadedTileEntityList) {
+                    if (te instanceof IInventory) {
+                        BlockPos pos = te.getPos();
+                        if (pos.getX() >= minX && pos.getX() <= maxX && pos.getZ() >= minZ && pos.getZ() <= maxZ) {
+                            zone.validContainers.add(pos);
+                        }
+                    }
+                }
+
+                manager.zones.add(zone);
+                manager.markDirty();
+                player.sendMessage(new TextComponentString(TextFormatting.GREEN + (message.editId != null ? "Updated automatic loot zone!" : "Created automatic loot zone!")));
+            } else if (message.clear) {
+                int removed = 0;
+                Iterator<LootZone> it = manager.zones.iterator();
+                while (it.hasNext()) {
+                    LootZone z = it.next();
+                    if (z.minX == minX && z.minZ == minZ && z.maxX == maxX && z.maxZ == maxZ) {
+                        it.remove();
+                        removed++;
+                    }
+                }
+                if (removed > 0) {
+                    manager.markDirty();
+                    player.sendMessage(new TextComponentString(TextFormatting.GREEN + "Removed " + removed + " automatic loot zone(s) in this area."));
+                }
             }
 
             List<IInventory> containers = new ArrayList<>();

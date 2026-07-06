@@ -3,14 +3,11 @@ package modularcontents.custom.gui;
 import modularcontents.ModularcontentsMod;
 import modularcontents.custom.loot.EquipmentManager;
 import modularcontents.custom.network.PacketOpenCreator;
-import modularcontents.custom.network.PacketRequestZones;
-import modularcontents.custom.network.PacketSyncZones;
 import modularcontents.custom.network.PacketZoneLoot;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -29,8 +26,6 @@ import org.lwjgl.opengl.GL11;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 public class GuiZoneEquipment extends GuiScreen {
     private static final int COL_ACCENT = 0xFFFFAA00;
@@ -67,11 +62,6 @@ public class GuiZoneEquipment extends GuiScreen {
     private final List<PresetRow> presetRows = new ArrayList<>();
     private final List<BlockPos> containerPositions = new ArrayList<>();
 
-    private List<PacketSyncZones.ClientZoneInfo> existingZones = new ArrayList<>();
-    private UUID editId = null;
-    private GuiTextField nameField;
-    private GuiTextField colorField;
-
     private float scroll = 0.0f;
     private float targetScroll = 0.0f;
     private long lastFrameTime = 0L;
@@ -79,7 +69,6 @@ public class GuiZoneEquipment extends GuiScreen {
     private boolean draggingScrollbar = false;
     private float scrollGrabOffset = 0.0f;
     private PresetRow hoveredSlider = null;
-    private BlockPos hoveredContainerPos = null;
 
     private GuiLaptop.FlatButton fillButton;
     private GuiLaptop.FlatButton clearButton;
@@ -121,19 +110,9 @@ public class GuiZoneEquipment extends GuiScreen {
         this.buttonList.add(this.clearButton);
         this.buttonList.add(this.backButton);
 
-        this.nameField = new GuiTextField(10, this.fontRenderer, presetPanelX, buttonsY - 44, PRESET_PANEL_WIDTH, 14);
-        this.nameField.setMaxStringLength(32);
-        this.nameField.setText("Zone");
-
-        this.colorField = new GuiTextField(11, this.fontRenderer, presetPanelX, buttonsY - 20, PRESET_PANEL_WIDTH, 14);
-        this.colorField.setMaxStringLength(8);
-        this.colorField.setText("88FFAA00");
-
         if (this.textureId == -1) {
             generateMinimap();
         }
-
-        ModularcontentsMod.PACKET_HANDLER.sendToServer(new PacketRequestZones());
 
         refreshContainers();
         updateButtonState();
@@ -289,10 +268,6 @@ public class GuiZoneEquipment extends GuiScreen {
         return mouseX >= mapX && mouseX < mapX + DISPLAY_SIZE && mouseY >= mapY && mouseY < mapY + DISPLAY_SIZE;
     }
 
-    public void receiveZones(List<PacketSyncZones.ClientZoneInfo> zones) {
-        this.existingZones = zones;
-    }
-
     private void updateButtonState() {
         boolean anyPreset = false;
         for (PresetRow row : presetRows) {
@@ -400,44 +375,15 @@ public class GuiZoneEquipment extends GuiScreen {
         drawMap();
         drawPresetPanel();
 
-        int presetPanelX = presetPanelX();
-        int buttonsY = firstButtonY();
-        this.drawString(this.fontRenderer, "Name:", presetPanelX, buttonsY - 56, COL_TEXT_DIM);
-        this.nameField.drawTextBox();
-        this.drawString(this.fontRenderer, "Color (Hex):", presetPanelX, buttonsY - 32, COL_TEXT_DIM);
-        this.colorField.drawTextBox();
-
         super.drawScreen(mouseX, mouseY, partialTicks);
 
-        hoveredContainerPos = null;
         if (isInsideMap(mouseX, mouseY)) {
-            int mapX = getMapX();
-            int mapY = getMapY();
-            for (BlockPos pos : containerPositions) {
-                int sx = screenXFromWorld(pos.getX());
-                int sy = screenYFromWorld(pos.getZ());
-                if (sx < mapX || sx >= mapX + DISPLAY_SIZE || sy < mapY || sy >= mapY + DISPLAY_SIZE) {
-                    continue;
-                }
-                if (mouseX >= sx - 4 && mouseX <= sx + 4 && mouseY >= sy - 4 && mouseY <= sy + 4) {
-                    hoveredContainerPos = pos;
-                    break;
-                }
-            }
-
-            if (hoveredContainerPos != null) {
-                String hover = "Chest [" + hoveredContainerPos.getX() + ", " + hoveredContainerPos.getY() + ", " + hoveredContainerPos.getZ() + "] - Click to TP";
-                int w = this.fontRenderer.getStringWidth(hover);
-                drawRect(mouseX + 8, mouseY - 14, mouseX + 12 + w, mouseY - 2, 0xCC000000);
-                this.fontRenderer.drawString(hover, mouseX + 10, mouseY - 12, COL_GREEN);
-            } else {
-                int hx = worldXFromMouse(mouseX);
-                int hz = worldZFromMouse(mouseY);
-                String hover = "X: " + hx + " Z: " + hz;
-                int w = this.fontRenderer.getStringWidth(hover);
-                drawRect(mouseX + 8, mouseY - 14, mouseX + 12 + w, mouseY - 2, 0xCC000000);
-                this.fontRenderer.drawString(hover, mouseX + 10, mouseY - 12, COL_ACCENT);
-            }
+            int hx = worldXFromMouse(mouseX);
+            int hz = worldZFromMouse(mouseY);
+            String hover = "X: " + hx + " Z: " + hz;
+            int w = this.fontRenderer.getStringWidth(hover);
+            drawRect(mouseX + 8, mouseY - 14, mouseX + 12 + w, mouseY - 2, 0xCC000000);
+            this.fontRenderer.drawString(hover, mouseX + 10, mouseY - 12, COL_ACCENT);
         }
     }
 
@@ -462,23 +408,6 @@ public class GuiZoneEquipment extends GuiScreen {
         }
 
         drawContainerMarkers(mapX, mapY);
-
-        for (PacketSyncZones.ClientZoneInfo zone : this.existingZones) {
-            int zx1 = MathHelper.clamp(screenXFromWorld(zone.minX), mapX, mapX + DISPLAY_SIZE);
-            int zy1 = MathHelper.clamp(screenYFromWorld(zone.minZ), mapY, mapY + DISPLAY_SIZE);
-            int zx2 = MathHelper.clamp(screenXFromWorld(zone.maxX + 1), mapX, mapX + DISPLAY_SIZE);
-            int zy2 = MathHelper.clamp(screenYFromWorld(zone.maxZ + 1), mapY, mapY + DISPLAY_SIZE);
-
-            if (zx1 < zx2 && zy1 < zy2) {
-                int zFillCol = zone.color;
-                int zLineCol = 0xFF000000 | (zone.color & 0xFFFFFF); // Opaque version of color
-                drawRect(zx1, zy1, zx2, zy2, zFillCol);
-                drawRect(zx1, zy1, zx2, zy1 + 1, zLineCol);
-                drawRect(zx1, zy2 - 1, zx2, zy2, zLineCol);
-                drawRect(zx1, zy1, zx1 + 1, zy2, zLineCol);
-                drawRect(zx2 - 1, zy1, zx2, zy2, zLineCol);
-            }
-        }
 
         int pcx = screenXFromWorld(originX);
         int pcy = screenYFromWorld(originZ);
@@ -617,12 +546,6 @@ public class GuiZoneEquipment extends GuiScreen {
             return;
         }
 
-        if (hoveredContainerPos != null) {
-            this.mc.player.sendChatMessage("/tp " + hoveredContainerPos.getX() + " " + hoveredContainerPos.getY() + " " + hoveredContainerPos.getZ());
-            this.mc.displayGuiScreen(null);
-            return;
-        }
-
         int panelX = presetPanelX();
         int listTop = presetListTop();
         int listBottom = presetListBottom();
@@ -670,53 +593,14 @@ public class GuiZoneEquipment extends GuiScreen {
             return;
         }
 
-        this.nameField.mouseClicked(mouseX, mouseY, mouseButton);
-        this.colorField.mouseClicked(mouseX, mouseY, mouseButton);
-
         if (isInsideMap(mouseX, mouseY)) {
-            int wx = worldXFromMouse(mouseX);
-            int wz = worldZFromMouse(mouseY);
-
-            PacketSyncZones.ClientZoneInfo clickedZone = null;
-            for (PacketSyncZones.ClientZoneInfo z : this.existingZones) {
-                if (wx >= z.minX && wx <= z.maxX && wz >= z.minZ && wz <= z.maxZ) {
-                    clickedZone = z;
-                    break;
-                }
-            }
-
-            if (clickedZone != null) {
-                this.editId = clickedZone.id;
-                this.nameField.setText(clickedZone.name);
-                this.colorField.setText(String.format("%08X", clickedZone.color));
-                this.selMinX = clickedZone.minX;
-                this.selMaxX = clickedZone.maxX;
-                this.selMinZ = clickedZone.minZ;
-                this.selMaxZ = clickedZone.maxZ;
-                this.hasSelection = true;
-                if (this.fillButton != null) this.fillButton.displayString = "Update";
-
-                for (PresetRow row : presetRows) {
-                    if (clickedZone.presets != null && clickedZone.presets.containsKey(row.name)) {
-                        row.enabled = true;
-                        row.chance = clickedZone.presets.get(row.name);
-                    } else {
-                        row.enabled = false;
-                        row.chance = 100.0f;
-                    }
-                }
-                updateButtonState();
-            } else {
-                this.editId = null;
-                if (this.fillButton != null) this.fillButton.displayString = tr("fill");
-                dragging = true;
-                startWorldX = wx;
-                startWorldZ = wz;
-                selMinX = startWorldX;
-                selMaxX = startWorldX;
-                selMinZ = startWorldZ;
-                selMaxZ = startWorldZ;
-            }
+            dragging = true;
+            startWorldX = worldXFromMouse(mouseX);
+            startWorldZ = worldZFromMouse(mouseY);
+            selMinX = startWorldX;
+            selMaxX = startWorldX;
+            selMinZ = startWorldZ;
+            selMaxZ = startWorldZ;
         }
     }
 
@@ -760,21 +644,7 @@ public class GuiZoneEquipment extends GuiScreen {
     }
 
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (this.nameField.textboxKeyTyped(typedChar, keyCode)) {
-            return;
-        }
-        if (this.colorField.textboxKeyTyped(typedChar, keyCode)) {
-            return;
-        }
-        super.keyTyped(typedChar, keyCode);
-    }
-
-    @Override
     public void updateScreen() {
-        super.updateScreen();
-        if (this.nameField != null) this.nameField.updateCursorCounter();
-        if (this.colorField != null) this.colorField.updateCursorCounter();
         refreshContainers();
     }
 
@@ -799,18 +669,11 @@ public class GuiZoneEquipment extends GuiScreen {
             if (selections.isEmpty()) {
                 return;
             }
-
-            String name = this.nameField.getText();
-            int color = 0x88FFAA00;
-            try {
-                color = (int) Long.parseLong(this.colorField.getText(), 16);
-            } catch (NumberFormatException ignored) {}
-
             ModularcontentsMod.PACKET_HANDLER.sendToServer(
-                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, false, true, name, 6000, color, this.editId, selections)); // 6000 ticks = 5 minutes respawn
+                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, false, selections));
         } else if (button.id == 1) {
             ModularcontentsMod.PACKET_HANDLER.sendToServer(
-                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, true, false, null, 0, 0, null, new ArrayList<>()));
+                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, true, new ArrayList<>()));
         }
     }
 

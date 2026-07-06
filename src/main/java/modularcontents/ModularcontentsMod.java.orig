@@ -17,7 +17,6 @@ import modularcontents.custom.loot.EquipmentManager;
 import modularcontents.custom.pack.PackZipUtils;
 import modularcontents.custom.tab.CustomTabManager;
 import modularcontents.proxy.CommonProxy;
-import modularcontents.custom.zone.LootZoneHandler;
 import modularcontents.custom.network.PacketCraftCancel;
 import modularcontents.custom.network.PacketCraftCancelHandler;
 import modularcontents.custom.network.PacketCraftStart;
@@ -95,10 +94,6 @@ import modularcontents.custom.network.PacketOpenCreator;
 import modularcontents.custom.network.PacketOpenCreatorHandler;
 import modularcontents.custom.network.PacketZoneLoot;
 import modularcontents.custom.network.PacketZoneLootHandler;
-import modularcontents.custom.network.PacketSyncZones;
-import modularcontents.custom.network.PacketSyncZonesHandler;
-import modularcontents.custom.network.PacketRequestZones;
-import modularcontents.custom.network.PacketRequestZonesHandler;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import java.util.ArrayList;
@@ -143,8 +138,6 @@ public class ModularcontentsMod implements IGuiHandler {
         ModularContentsConfig.load(event.getModConfigurationDirectory().getParentFile());
 
         MinecraftForge.EVENT_BUS.register(GlobalAirdropHandler.class);
-        MinecraftForge.EVENT_BUS.register(new LootZoneHandler());
-        MinecraftForge.EVENT_BUS.register(new LootZoneHandler());
 
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "airdrop"), EntityAirdrop.class, "Airdrop", 1, instance, 64, 1, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "signal_flare"), EntitySignalFlare.class, "SignalFlare", 2, instance, 64, 1, true);
@@ -177,8 +170,6 @@ public class ModularcontentsMod implements IGuiHandler {
         PACKET_HANDLER.registerMessage(PacketOpenCreatorHandler.class, PacketOpenCreator.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketSyncContentHandler.class, PacketSyncContent.class, packetId++, Side.CLIENT);
         PACKET_HANDLER.registerMessage(PacketZoneLootHandler.class, PacketZoneLoot.class, packetId++, Side.SERVER);
-        PACKET_HANDLER.registerMessage(PacketSyncZonesHandler.class, PacketSyncZones.class, packetId++, Side.CLIENT);
-        PACKET_HANDLER.registerMessage(PacketRequestZonesHandler.class, PacketRequestZones.class, packetId++, Side.SERVER);
     }
 
     public static PacketSyncContent buildContentSyncPacket() {
@@ -193,13 +184,6 @@ public class ModularcontentsMod implements IGuiHandler {
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.player instanceof EntityPlayerMP) {
             PACKET_HANDLER.sendTo(buildContentSyncPacket(), (EntityPlayerMP) event.player);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onConfigChanged(net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.getModID().equals(MODID)) {
-            ModularContentsConfig.syncConfig();
         }
     }
 

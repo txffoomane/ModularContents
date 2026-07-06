@@ -1,0 +1,10 @@
+--- ModularcontentsMod.java
++++ ModularcontentsMod.java
+@@ -95,6 +95,7 @@
+ import modularcontents.custom.network.PacketZoneLoot;
+ import modularcontents.custom.network.PacketZoneLootHandler;
+ import modularcontents.proxy.CommonProxy;
++import modularcontents.custom.zone.LootZoneHandler;
+ import net.minecraft.block.Block;
+ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+ import net.minecraft.creativetab.CreativeTabs;

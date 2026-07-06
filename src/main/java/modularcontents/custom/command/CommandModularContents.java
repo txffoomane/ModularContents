@@ -46,8 +46,10 @@ public class CommandModularContents extends CommandBase {
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
-            sender.sendMessage(new TextComponentString(TextFormatting.YELLOW + "Reloading ModularContents recipes and loot tables..."));
+            sender.sendMessage(new TextComponentString(TextFormatting.YELLOW + "Reloading ModularContents configs, recipes and loot tables..."));
 
+            // Reload main config
+            modularcontents.custom.config.ModularContentsConfig.load(server.getDataDirectory());
             // Reload recipes from JSON
             ListWorkbenchRecipeManager.loadRecipes(server.getDataDirectory());
             // Reload loot tables

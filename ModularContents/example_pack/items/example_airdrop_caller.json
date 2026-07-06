@@ -1,0 +1,16 @@
+{
+  "id": "example_airdrop_caller",
+  "display_name": "Example Flare",
+  "max_stack_size": 16,
+  "creative_tab": "example_tab",
+  "max_damage": 0,
+  "airdrop_caller": {
+    "is_flare": true,
+    "delay_min": 100,
+    "delay_max": 200,
+    "distance_min": 0.0,
+    "distance_max": 0.0,
+    "loot_table": "example_airdrop",
+    "consume_on_use": true
+  }
+}

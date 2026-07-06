@@ -6,35 +6,24 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class PacketZoneLoot implements IMessage {
     public int minX;
     public int minZ;
     public int maxX;
     public int maxZ;
-    public boolean clear;
-    public boolean isCreateZone;
-    public String name;
-    public int respawnTime;
-    public int color;
-    public UUID editId;
+    public boolean clear;\n    public boolean isCreateZone;\n    public int respawnTime;
     public List<PresetEntry> presets = new ArrayList<>();
 
     public PacketZoneLoot() {
     }
 
-    public PacketZoneLoot(int minX, int minZ, int maxX, int maxZ, boolean clear, boolean isCreateZone, String name, int respawnTime, int color, UUID editId, List<PresetEntry> presets) {
+    public PacketZoneLoot(int minX, int minZ, int maxX, int maxZ, boolean clear, List<PresetEntry> presets) {
         this.minX = minX;
         this.minZ = minZ;
         this.maxX = maxX;
         this.maxZ = maxZ;
         this.clear = clear;
-        this.isCreateZone = isCreateZone;
-        this.name = name != null ? name : "Zone";
-        this.respawnTime = respawnTime;
-        this.color = color;
-        this.editId = editId;
         if (presets != null) {
             this.presets = presets;
         }
@@ -47,19 +36,12 @@ public class PacketZoneLoot implements IMessage {
         this.maxX = buf.readInt();
         this.maxZ = buf.readInt();
         this.clear = buf.readBoolean();
-        this.isCreateZone = buf.readBoolean();
-        this.name = ByteBufUtils.readUTF8String(buf);
-        this.respawnTime = buf.readInt();
-        this.color = buf.readInt();
-        if (buf.readBoolean()) {
-            this.editId = new UUID(buf.readLong(), buf.readLong());
-        }
         int count = buf.readInt();
         this.presets = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            String pName = ByteBufUtils.readUTF8String(buf);
+            String name = ByteBufUtils.readUTF8String(buf);
             float chance = buf.readFloat();
-            this.presets.add(new PresetEntry(pName, chance));
+            this.presets.add(new PresetEntry(name, chance));
         }
     }
 
@@ -70,15 +52,6 @@ public class PacketZoneLoot implements IMessage {
         buf.writeInt(this.maxX);
         buf.writeInt(this.maxZ);
         buf.writeBoolean(this.clear);
-        buf.writeBoolean(this.isCreateZone);
-        ByteBufUtils.writeUTF8String(buf, this.name != null ? this.name : "Zone");
-        buf.writeInt(this.respawnTime);
-        buf.writeInt(this.color);
-        buf.writeBoolean(this.editId != null);
-        if (this.editId != null) {
-            buf.writeLong(this.editId.getMostSignificantBits());
-            buf.writeLong(this.editId.getLeastSignificantBits());
-        }
         buf.writeInt(this.presets.size());
         for (PresetEntry entry : this.presets) {
             ByteBufUtils.writeUTF8String(buf, entry.name);

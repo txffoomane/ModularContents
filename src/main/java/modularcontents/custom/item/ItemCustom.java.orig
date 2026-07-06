@@ -3,7 +3,6 @@ package modularcontents.custom.item;
 import modularcontents.ModularcontentsMod;
 import modularcontents.custom.entity.EntityAirdrop;
 import modularcontents.custom.entity.EntitySignalFlare;
-import modularcontents.custom.config.ModularContentsConfig;
 import modularcontents.custom.tab.CustomTabManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
@@ -90,7 +89,6 @@ public class ItemCustom extends Item {
                     flare.shoot(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
                     worldIn.spawnEntity(flare);
                 }
-                playerIn.getCooldownTracker().setCooldown(this, ModularContentsConfig.airdropCallerCooldown);
             } else {
                 if (!worldIn.isRemote) {
                     double distance = callerInfo.distanceMin;
@@ -119,7 +117,6 @@ public class ItemCustom extends Item {
 
                     int seconds = delayTicks / 20;
                     playerIn.sendMessage(new TextComponentString(TextFormatting.GREEN + "Airdrop requested! Coordinates: X: " + (int)targetX + ", Z: " + (int)targetZ + ". ETA: " + seconds + " seconds."));
-                    playerIn.getCooldownTracker().setCooldown(this, ModularContentsConfig.airdropCallerCooldown);
                 }
             }
 
