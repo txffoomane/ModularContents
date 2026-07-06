@@ -2,7 +2,7 @@ package modularcontents.custom.tab;
 
 import com.google.gson.Gson;
 import modularcontents.custom.item.CustomItemInfo;
-import modularcontents.custom.item.CustomItemManager;
+import modularcontents.custom.item.CustomContentManager;
 import modularcontents.custom.pack.PackZipUtils;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
@@ -92,7 +92,14 @@ public class CustomTabManager {
                 }
             }
 
-            for (CustomItemInfo itemInfo : CustomItemManager.CUSTOM_ITEMS.values()) {
+            for (CustomItemInfo itemInfo : CustomContentManager.CUSTOM_ITEMS.values()) {
+                if (itemInfo.creativeTab == null || !CUSTOM_TABS.containsKey(itemInfo.creativeTab)) continue;
+                Item item = Item.getByNameOrId("modularcontents:" + itemInfo.id);
+                if (item != null && item.getCreativeTab() != CUSTOM_TABS.get(itemInfo.creativeTab)) {
+                    item.setCreativeTab(CUSTOM_TABS.get(itemInfo.creativeTab));
+                }
+            }
+            for (modularcontents.custom.item.CustomFoodInfo itemInfo : CustomContentManager.CUSTOM_FOODS.values()) {
                 if (itemInfo.creativeTab == null || !CUSTOM_TABS.containsKey(itemInfo.creativeTab)) continue;
                 Item item = Item.getByNameOrId("modularcontents:" + itemInfo.id);
                 if (item != null && item.getCreativeTab() != CUSTOM_TABS.get(itemInfo.creativeTab)) {

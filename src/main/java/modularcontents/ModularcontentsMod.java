@@ -89,6 +89,7 @@ import modularcontents.custom.entity.EntitySignalFlare;
 import modularcontents.custom.npc.EntityCustomNPC;
 import modularcontents.custom.npc.EntityNPCBullet;
 import modularcontents.custom.npc.NPCManager;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraft.util.ResourceLocation;
 import modularcontents.custom.block.BlockLaptop;
@@ -351,7 +352,6 @@ public class ModularcontentsMod implements IGuiHandler {
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
-    @SubscribeEvent
     public static void registerModels(ModelRegistryEvent event) {
         ModelLoader.setCustomModelResourceLocation(custom_workbench_item, 0, new ModelResourceLocation(custom_workbench_item.getRegistryName(), "inventory"));
         ModelLoader.setCustomModelResourceLocation(airdrop_item, 0, new ModelResourceLocation(airdrop_item.getRegistryName(), "inventory"));
