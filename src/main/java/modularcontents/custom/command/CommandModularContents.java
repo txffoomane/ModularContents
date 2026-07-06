@@ -6,6 +6,8 @@ import modularcontents.custom.network.PacketSyncContent;
 import modularcontents.custom.recipe.ListWorkbenchRecipeManager;
 import modularcontents.custom.loot.AirdropLootManager;
 import modularcontents.custom.loot.EquipmentManager;
+import modularcontents.custom.npc.EntityCustomNPC;
+import modularcontents.custom.npc.NPCManager;
 import net.minecraft.command.CommandBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.command.CommandException;
@@ -30,7 +32,7 @@ public class CommandModularContents extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/modularcontents <reload|airdrop>";
+        return "/modularcontents <reload|airdrop|spawnnpc>";
     }
 
     @Override
@@ -56,6 +58,8 @@ public class CommandModularContents extends CommandBase {
             AirdropLootManager.loadLootTables(server.getDataDirectory());
             // Reload equipment presets
             EquipmentManager.loadEquipment(server.getDataDirectory());
+            // Reload NPCs
+            NPCManager.loadNPCs(server.getDataDirectory());
 
             PacketSyncContent syncPacket = ModularcontentsMod.buildContentSyncPacket();
             for (EntityPlayerMP player : server.getPlayerList().getPlayers()) {
@@ -93,6 +97,25 @@ public class CommandModularContents extends CommandBase {
             } else {
                 sender.sendMessage(new TextComponentString(TextFormatting.RED + "Usage: /modularcontents airdrop <x> <z> [loot_table]"));
             }
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("spawnnpc")) {
+            if (args.length >= 2) {
+                String npcId = args[1];
+                if (!NPCManager.NPCS.containsKey(npcId)) {
+                    sender.sendMessage(new TextComponentString(TextFormatting.RED + "NPC with ID '" + npcId + "' not found!"));
+                    return;
+                }
+
+                World world = sender.getEntityWorld();
+                BlockPos pos = sender.getPosition();
+                EntityCustomNPC npc = new EntityCustomNPC(world);
+                npc.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                npc.setNpcId(npcId);
+                world.spawnEntity(npc);
+
+                sender.sendMessage(new TextComponentString(TextFormatting.GREEN + "Spawned NPC: " + npcId));
+            } else {
+                sender.sendMessage(new TextComponentString(TextFormatting.RED + "Usage: /modularcontents spawnnpc <id>"));
+            }
         } else {
             sender.sendMessage(new TextComponentString(TextFormatting.RED + "Usage: " + getUsage(sender)));
         }
@@ -101,9 +124,11 @@ public class CommandModularContents extends CommandBase {
     @Override
     public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "reload", "airdrop");
+            return getListOfStringsMatchingLastWord(args, "reload", "airdrop", "spawnnpc");
         } else if (args.length == 4 && args[0].equalsIgnoreCase("airdrop")) {
             return getListOfStringsMatchingLastWord(args, AirdropLootManager.LOOT_TABLES.keySet());
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("spawnnpc")) {
+            return getListOfStringsMatchingLastWord(args, NPCManager.NPCS.keySet());
         }
         return super.getTabCompletions(server, sender, args, targetPos);
     }

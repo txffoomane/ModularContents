@@ -80,6 +80,9 @@ import modularcontents.custom.gui.GuiAirdrop;
 
 import modularcontents.custom.entity.EntityAirdrop;
 import modularcontents.custom.entity.EntitySignalFlare;
+import modularcontents.custom.npc.EntityCustomNPC;
+import modularcontents.custom.npc.EntityNPCBullet;
+import modularcontents.custom.npc.NPCManager;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraft.util.ResourceLocation;
 import modularcontents.custom.block.BlockLaptop;
@@ -144,6 +147,11 @@ public class ModularcontentsMod implements IGuiHandler {
 
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "airdrop"), EntityAirdrop.class, "Airdrop", 1, instance, 64, 1, true);
         EntityRegistry.registerModEntity(new ResourceLocation(MODID, "signal_flare"), EntitySignalFlare.class, "SignalFlare", 2, instance, 64, 1, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "custom_npc"), EntityCustomNPC.class, "CustomNPC", 3, instance, 64, 3, true);
+        EntityRegistry.registerModEntity(new ResourceLocation(MODID, "npc_bullet"), EntityNPCBullet.class, "NPCBullet", 4, instance, 64, 20, true);
+
+        // Load NPC definitions
+        NPCManager.loadNPCs(event.getModConfigurationDirectory().getParentFile());
 
         // Setup directories for custom recipes
         ListWorkbenchRecipeManager.setupDirectories(event.getModConfigurationDirectory().getParentFile());

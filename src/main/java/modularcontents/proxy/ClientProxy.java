@@ -14,6 +14,10 @@ import modularcontents.custom.loot.EquipmentManager;
 import modularcontents.custom.pack.PackZipUtils;
 import modularcontents.custom.recipe.ListWorkbenchRecipeManager;
 import modularcontents.custom.tab.CustomTabManager;
+import modularcontents.custom.npc.EntityCustomNPC;
+import modularcontents.custom.npc.EntityNPCBullet;
+import modularcontents.custom.npc.RenderCustomNPC;
+import modularcontents.custom.npc.RenderNPCBullet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.FallbackResourceManager;
 import net.minecraft.client.resources.I18n;
@@ -39,6 +43,8 @@ public class ClientProxy extends CommonProxy {
         KeybindManager.register();
         RenderingRegistry.registerEntityRenderingHandler(EntityAirdrop.class, RenderAirdrop::new);
         RenderingRegistry.registerEntityRenderingHandler(EntitySignalFlare.class, manager -> new RenderSignalFlare(manager, ModularcontentsMod.signal_flare, Minecraft.getMinecraft().getRenderItem()));
+        RenderingRegistry.registerEntityRenderingHandler(EntityCustomNPC.class, RenderCustomNPC::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityNPCBullet.class, RenderNPCBullet::new);
         injectCustomResourcePack(event.getModConfigurationDirectory().getParentFile());
     }
 
