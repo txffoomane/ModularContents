@@ -166,12 +166,12 @@ public class GuiContentCreator extends GuiContainer {
 
         this.txtNpcId = createField(26, 15, 45, 160, 32, "custom_bandit");
         this.txtNpcName = createField(27, 15, 73, 160, 32, "Bandit");
-        this.txtNpcHealth = createField(28, 15, 101, 40, 5, "20.0");
-        this.txtNpcSpeed = createField(29, 65, 101, 40, 5, "0.25");
-        this.txtNpcDamage = createField(30, 115, 101, 40, 5, "2.0");
-        this.txtNpcFollow = createField(31, 15, 129, 40, 5, "32.0");
-        this.txtNpcShoot = createField(32, 65, 129, 40, 5, "16.0");
-        this.txtNpcTexture = createField(33, 115, 129, 60, 64, "minecraft:textures/entity/steve.png");
+        this.txtNpcHealth = createField(28, 15, 101, 50, 5, "20.0");
+        this.txtNpcSpeed = createField(29, 75, 101, 50, 5, "0.25");
+        this.txtNpcDamage = createField(30, 135, 101, 40, 5, "2.0");
+        this.txtNpcFollow = createField(31, 198, 45, 60, 5, "32.0");
+        this.txtNpcShoot = createField(32, 268, 45, 60, 5, "16.0");
+        this.txtNpcTexture = createField(33, 198, 73, 130, 64, "minecraft:textures/entity/steve.png");
 
         updateTabState();
     }
@@ -258,8 +258,8 @@ public class GuiContentCreator extends GuiContainer {
                 slot.yPos = i < 9 ? 41 : 73 + (i / 9 - 1) * 18;
                 slot.xPos = 14 + (i % 9) * 18;
             } else if (isNpc && i < 6) { // 6 equipment slots for NPC
-                slot.yPos = 160; // 160 is in the lower panel
-                slot.xPos = 15 + (i * 18);
+                slot.yPos = 31 + (i * 19);
+                slot.xPos = -21;
             } else {
                 slot.yPos = -9999;
             }
@@ -471,20 +471,26 @@ public class GuiContentCreator extends GuiContainer {
     private void drawNpcTab() {
         fontRenderer.drawString("NPC Editor", guiLeft + 14, guiTop + 31, COL_ACCENT);
 
-        fontRenderer.drawString("ID:", guiLeft + 15, guiTop + 45 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Name:", guiLeft + 15, guiTop + 73 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Health", guiLeft + 15, guiTop + 101 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Speed", guiLeft + 65, guiTop + 101 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Damage", guiLeft + 115, guiTop + 101 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Follow Range", guiLeft + 15, guiTop + 129 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Shoot Range", guiLeft + 65, guiTop + 129 - 9, COL_TEXT_DIM);
-        fontRenderer.drawString("Texture Path", guiLeft + 115, guiTop + 129 - 9, COL_TEXT_DIM);
+        // Left Panel Text
+        fontRenderer.drawString("ID:", guiLeft + 15, guiTop + 36, COL_TEXT_DIM);
+        fontRenderer.drawString("Name:", guiLeft + 15, guiTop + 64, COL_TEXT_DIM);
+        fontRenderer.drawString("Health", guiLeft + 15, guiTop + 92, COL_TEXT_DIM);
+        fontRenderer.drawString("Speed", guiLeft + 75, guiTop + 92, COL_TEXT_DIM);
+        fontRenderer.drawString("Damage", guiLeft + 135, guiTop + 92, COL_TEXT_DIM);
 
-        fontRenderer.drawString("Equipment Slots (Main, Off, Head, Chest, Legs, Feet)", guiLeft + 14, guiTop + 148, COL_TEXT_DIM);
+        // Right Panel Text
+        fontRenderer.drawString("Follow Rg", guiLeft + 198, guiTop + 36, COL_TEXT_DIM);
+        fontRenderer.drawString("Shoot Rg", guiLeft + 268, guiTop + 36, COL_TEXT_DIM);
+        fontRenderer.drawString("Texture Path", guiLeft + 198, guiTop + 64, COL_TEXT_DIM);
 
-        // draw background boxes for the 6 equipment slots
+        // Vertical Equipment Slots (outside the main left panel)
+        drawRect(guiLeft - 26, guiTop + 24, guiLeft, guiTop + 146, COL_BORDER);
+        drawRect(guiLeft - 25, guiTop + 25, guiLeft, guiTop + 145, COL_PANEL_R);
+
+        fontRenderer.drawString("Equip", guiLeft - 24, guiTop + 15, COL_TEXT_DIM);
+
         for (int i = 0; i < 6; ++i) {
-            drawSlotBox(guiLeft + 14 + (i * 18), guiTop + 159, COL_SLOT_BG, false);
+            drawSlotBox(guiLeft - 22, guiTop + 30 + (i * 19), COL_SLOT_BG, false);
         }
     }
 
