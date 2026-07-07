@@ -210,21 +210,21 @@ public class GuiContentCreator extends GuiContainer {
         this.txtNpcShoot = createField(32, 268, 45, 60, 5, "16.0");
         this.txtNpcTexture = createField(33, 198, 73, 130, 64, "minecraft:textures/entity/steve.png");
 
-        this.txtBlockHardness = createField(34, 198, 70, 40, 5, "1.5");
-        this.txtBlockResist = createField(35, 258, 70, 40, 5, "10.0");
-        this.txtBlockLight = createField(36, 198, 98, 40, 5, "0.0");
-        this.txtBlockTool = createField(37, 258, 98, 60, 16, "pickaxe");
-        this.txtBlockMat = createField(38, 198, 126, 60, 16, "rock");
-        this.txtBlockHarvest = createField(39, 278, 126, 30, 2, "0");
+        this.txtBlockHardness = createField(34, 14, 52, 45, 5, "1.5");
+        this.txtBlockResist = createField(35, 75, 52, 45, 5, "10.0");
+        this.txtBlockLight = createField(36, 14, 82, 45, 5, "0.0");
+        this.txtBlockTool = createField(37, 75, 82, 60, 16, "pickaxe");
+        this.txtBlockMat = createField(38, 14, 112, 60, 16, "rock");
+        this.txtBlockHarvest = createField(39, 85, 112, 40, 2, "0");
 
-        this.txtFoodHeal = createField(40, 198, 70, 40, 3, "4");
-        this.txtFoodSat = createField(41, 258, 70, 40, 5, "0.3");
-        this.txtFoodMeat = createField(42, 198, 98, 40, 5, "false");
-        this.txtFoodAlways = createField(43, 258, 98, 40, 5, "false");
-        this.txtFoodEffect = createField(44, 198, 126, 130, 64, "");
-        this.txtFoodDur = createField(45, 14, 136, 40, 5, "100");
-        this.txtFoodAmp = createField(46, 64, 136, 30, 2, "0");
-        this.txtFoodProb = createField(47, 104, 136, 40, 5, "1.0");
+        this.txtFoodHeal = createField(40, 14, 52, 40, 3, "4");
+        this.txtFoodSat = createField(41, 75, 52, 48, 5, "0.3");
+        this.txtFoodMeat = createField(42, 14, 82, 48, 5, "false");
+        this.txtFoodAlways = createField(43, 75, 82, 48, 5, "false");
+        this.txtFoodEffect = createField(44, 14, 112, 160, 64, "");
+        this.txtFoodDur = createField(45, 14, 138, 40, 5, "100");
+        this.txtFoodAmp = createField(46, 64, 138, 30, 2, "0");
+        this.txtFoodProb = createField(47, 104, 138, 40, 5, "1.0");
 
         updateTabState();
     }
@@ -582,33 +582,35 @@ public class GuiContentCreator extends GuiContainer {
 
     private void drawBlockTab() {
         fontRenderer.drawString("Block Editor", guiLeft + 14, guiTop + 31, COL_ACCENT);
-        fontRenderer.drawString("ID:", guiLeft + 180, guiTop + 45, COL_TEXT_DIM);
-        fontRenderer.drawString("Name:", guiLeft + 160, guiTop + 73, COL_TEXT_DIM);
-        fontRenderer.drawString("Creative Tab:", guiLeft + 130, guiTop + 129, COL_TEXT_DIM);
 
-        fontRenderer.drawString("Hardness", guiLeft + 198, guiTop + 61, COL_TEXT_DIM);
-        fontRenderer.drawString("Resistance", guiLeft + 258, guiTop + 61, COL_TEXT_DIM);
-        fontRenderer.drawString("Light Lv", guiLeft + 198, guiTop + 89, COL_TEXT_DIM);
-        fontRenderer.drawString("Tool", guiLeft + 258, guiTop + 89, COL_TEXT_DIM);
-        fontRenderer.drawString("Material", guiLeft + 198, guiTop + 117, COL_TEXT_DIM);
-        fontRenderer.drawString("Harvest Lv", guiLeft + 268, guiTop + 117, COL_TEXT_DIM);
+        fontRenderer.drawString("Hardness", guiLeft + 14, guiTop + 43, COL_TEXT_DIM);
+        fontRenderer.drawString("Resistance", guiLeft + 75, guiTop + 43, COL_TEXT_DIM);
+        fontRenderer.drawString("Light Lv", guiLeft + 14, guiTop + 73, COL_TEXT_DIM);
+        fontRenderer.drawString("Tool", guiLeft + 75, guiTop + 73, COL_TEXT_DIM);
+        fontRenderer.drawString("Material", guiLeft + 14, guiTop + 103, COL_TEXT_DIM);
+        fontRenderer.drawString("Harvest Lv", guiLeft + 85, guiTop + 103, COL_TEXT_DIM);
+
+        drawRightLabel(tr("label.item_id"), 28);
+        drawRightLabel(tr("label.display_name"), 56);
+        drawRightLabel(tr("label.creative_tab"), 112);
     }
 
     private void drawFoodTab() {
         fontRenderer.drawString("Food Editor", guiLeft + 14, guiTop + 31, COL_ACCENT);
-        fontRenderer.drawString("ID:", guiLeft + 180, guiTop + 45, COL_TEXT_DIM);
-        fontRenderer.drawString("Name:", guiLeft + 160, guiTop + 73, COL_TEXT_DIM);
-        fontRenderer.drawString("Max Stack:", guiLeft + 145, guiTop + 101, COL_TEXT_DIM);
-        fontRenderer.drawString("Creative Tab:", guiLeft + 130, guiTop + 129, COL_TEXT_DIM);
 
-        fontRenderer.drawString("Heal", guiLeft + 198, guiTop + 61, COL_TEXT_DIM);
-        fontRenderer.drawString("Saturation", guiLeft + 258, guiTop + 61, COL_TEXT_DIM);
-        fontRenderer.drawString("Is Meat", guiLeft + 198, guiTop + 89, COL_TEXT_DIM);
-        fontRenderer.drawString("Always Edible", guiLeft + 250, guiTop + 89, COL_TEXT_DIM);
-        fontRenderer.drawString("Potion Effect", guiLeft + 198, guiTop + 117, COL_TEXT_DIM);
-        fontRenderer.drawString("Duration", guiLeft + 14, guiTop + 127, COL_TEXT_DIM);
-        fontRenderer.drawString("Amp", guiLeft + 64, guiTop + 127, COL_TEXT_DIM);
-        fontRenderer.drawString("Prob", guiLeft + 104, guiTop + 127, COL_TEXT_DIM);
+        fontRenderer.drawString("Heal", guiLeft + 14, guiTop + 43, COL_TEXT_DIM);
+        fontRenderer.drawString("Saturation", guiLeft + 75, guiTop + 43, COL_TEXT_DIM);
+        fontRenderer.drawString("Is Meat", guiLeft + 14, guiTop + 73, COL_TEXT_DIM);
+        fontRenderer.drawString("Always Edible", guiLeft + 75, guiTop + 73, COL_TEXT_DIM);
+        fontRenderer.drawString("Potion Effect", guiLeft + 14, guiTop + 103, COL_TEXT_DIM);
+        fontRenderer.drawString("Duration", guiLeft + 14, guiTop + 129, COL_TEXT_DIM);
+        fontRenderer.drawString("Amp", guiLeft + 64, guiTop + 129, COL_TEXT_DIM);
+        fontRenderer.drawString("Prob", guiLeft + 104, guiTop + 129, COL_TEXT_DIM);
+
+        drawRightLabel(tr("label.item_id"), 28);
+        drawRightLabel(tr("label.display_name"), 56);
+        drawRightLabel(tr("label.max_stack"), 84);
+        drawRightLabel(tr("label.creative_tab"), 112);
     }
 
     private String[] infoLines(String key, int count) {
