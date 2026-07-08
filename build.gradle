@@ -12,7 +12,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '0.3-Alpha'
+version = '0.4-Alpha'
 group = 'modularcontents'
 archivesBaseName = 'modularcontents'
 
