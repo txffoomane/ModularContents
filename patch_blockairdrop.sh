@@ -1,0 +1,1 @@
+sed -i '/public TileEntity createNewTileEntity/i \    @Override\n    public net.minecraft.item.Item getItemDropped(IBlockState state, Random rand, int fortune) {\n        return net.minecraft.init.Items.AIR;\n    }\n' src/main/java/modularcontents/custom/block/BlockAirdrop.java

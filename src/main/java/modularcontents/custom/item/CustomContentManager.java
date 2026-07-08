@@ -18,11 +18,17 @@ public class CustomContentManager {
     public static final Map<String, CustomItemInfo> CUSTOM_ITEMS = new HashMap<>();
     public static final Map<String, CustomBlockInfo> CUSTOM_BLOCKS = new HashMap<>();
     public static final Map<String, CustomFoodInfo> CUSTOM_FOODS = new HashMap<>();
+    public static final Map<String, CustomWeaponInfo> CUSTOM_WEAPONS = new HashMap<>();
+    public static final Map<String, CustomToolInfo> CUSTOM_TOOLS = new HashMap<>();
+    public static final Map<String, CustomArmorInfo> CUSTOM_ARMORS = new HashMap<>();
 
     public static void loadContent(File gameDir) {
         CUSTOM_ITEMS.clear();
         CUSTOM_BLOCKS.clear();
         CUSTOM_FOODS.clear();
+        CUSTOM_WEAPONS.clear();
+        CUSTOM_TOOLS.clear();
+        CUSTOM_ARMORS.clear();
 
         File rootDir = new File(gameDir, "ModularContents");
         if (!rootDir.exists()) {
@@ -42,9 +48,17 @@ public class CustomContentManager {
 
                 // Load food
                 loadJsonFiles(new File(packDir, "food"), CustomFoodInfo.class, CUSTOM_FOODS);
+                // Load weapons
+                loadJsonFiles(new File(packDir, "weapons"), CustomWeaponInfo.class, CUSTOM_WEAPONS);
+
+                // Load tools
+                loadJsonFiles(new File(packDir, "tools"), CustomToolInfo.class, CUSTOM_TOOLS);
+
+                // Load armor
+                loadJsonFiles(new File(packDir, "armor"), CustomArmorInfo.class, CUSTOM_ARMORS);
             }
         }
-        System.out.println("[ModularContents] Loaded " + CUSTOM_ITEMS.size() + " items, " + CUSTOM_BLOCKS.size() + " blocks, " + CUSTOM_FOODS.size() + " foods.");
+        System.out.println("[ModularContents] Loaded " + CUSTOM_ITEMS.size() + " items, " + CUSTOM_BLOCKS.size() + " blocks, " + CUSTOM_FOODS.size() + " foods, " + CUSTOM_WEAPONS.size() + " weapons, " + CUSTOM_TOOLS.size() + " tools, " + CUSTOM_ARMORS.size() + " armors.");
     }
 
     private static <T> void loadJsonFiles(File dir, Class<T> clazz, Map<String, T> map) {
@@ -60,6 +74,9 @@ public class CustomContentManager {
                     if (info instanceof CustomItemInfo) id = ((CustomItemInfo) info).id;
                     else if (info instanceof CustomBlockInfo) id = ((CustomBlockInfo) info).id;
                     else if (info instanceof CustomFoodInfo) id = ((CustomFoodInfo) info).id;
+                    else if (info instanceof CustomWeaponInfo) id = ((CustomWeaponInfo) info).id;
+                    else if (info instanceof CustomToolInfo) id = ((CustomToolInfo) info).id;
+                    else if (info instanceof CustomArmorInfo) id = ((CustomArmorInfo) info).id;
 
                     if (id != null && !id.isEmpty()) {
                         map.put(id, info);

@@ -140,6 +140,15 @@ public class ItemCustom extends Item {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        if (info.description != null) {
+            for (String line : info.description) {
+                tooltip.add(TextFormatting.GRAY + line);
+            }
+        }
+    }
+
     public String getItemStackDisplayName(ItemStack stack) {
         return info.displayName;
     }

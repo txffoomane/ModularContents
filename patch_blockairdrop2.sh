@@ -1,0 +1,1 @@
+sed -i '/public net.minecraft.item.Item getItemDropped/i \    @Override\n    protected boolean canSilkHarvest() {\n        return false;\n    }\n\n    @Override\n    public net.minecraft.item.ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {\n        return net.minecraft.item.ItemStack.EMPTY;\n    }\n' src/main/java/modularcontents/custom/block/BlockAirdrop.java

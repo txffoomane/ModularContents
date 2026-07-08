@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName;
 public class CustomFoodInfo {
     public String id;
 
+    @SerializedName("description")
+    public String[] description = null;
+
     @SerializedName("display_name")
     public String displayName = "Custom Food";
 

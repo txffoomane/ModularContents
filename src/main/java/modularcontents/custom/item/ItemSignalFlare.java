@@ -25,6 +25,25 @@ public class ItemSignalFlare extends Item {
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack itemstack = playerIn.getHeldItem(handIn);
 
+        boolean hasClearSky = true;
+        net.minecraft.util.math.BlockPos playerPos = new net.minecraft.util.math.BlockPos(playerIn);
+        for (int y = playerPos.getY(); y < 256; y++) {
+            net.minecraft.block.state.IBlockState state = worldIn.getBlockState(new net.minecraft.util.math.BlockPos(playerPos.getX(), y, playerPos.getZ()));
+            if (state.getMaterial() != net.minecraft.block.material.Material.AIR && state.getMaterial() != net.minecraft.block.material.Material.LEAVES && state.getMaterial() != net.minecraft.block.material.Material.GLASS) {
+                if (state.isOpaqueCube() || state.getMaterial().blocksMovement()) {
+                    hasClearSky = false;
+                    break;
+                }
+            }
+        }
+
+        if (!hasClearSky) {
+            if (!worldIn.isRemote) {
+                playerIn.sendMessage(new net.minecraft.util.text.TextComponentString(net.minecraft.util.text.TextFormatting.RED + "You must be outdoors to use a signal flare."));
+            }
+            return new ActionResult<>(EnumActionResult.FAIL, itemstack);
+        }
+
         worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_SNOWBALL_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
 
         if (!worldIn.isRemote) {

@@ -5,6 +5,9 @@ import com.google.gson.annotations.SerializedName;
 public class CustomItemInfo {
     public String id;
 
+    @SerializedName("description")
+    public String[] description = null;
+
     @SerializedName("display_name")
     public String displayName = "Custom Item";
 

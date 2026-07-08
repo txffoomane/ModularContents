@@ -168,6 +168,13 @@ public class TileEntityAirdrop extends TileEntityLockableLoot implements ITickab
     }
 
     @Override
+    public void closeInventory(EntityPlayer player) {
+        if (!this.world.isRemote && this.isEmpty()) {
+            this.world.setBlockToAir(this.pos);
+        }
+    }
+
+    @Override
     public String getGuiID() {
         return "modularcontents:airdrop";
     }

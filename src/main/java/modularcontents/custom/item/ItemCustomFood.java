@@ -40,6 +40,11 @@ public class ItemCustomFood extends ItemFood {
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        if (info.description != null) {
+            for (String line : info.description) {
+                tooltip.add(net.minecraft.util.text.TextFormatting.GRAY + line);
+            }
+        }
         if (I18n.hasKey("item." + info.id + ".tooltip")) {
             tooltip.add(I18n.format("item." + info.id + ".tooltip"));
         }

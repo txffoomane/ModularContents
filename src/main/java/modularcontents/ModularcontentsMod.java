@@ -65,6 +65,13 @@ import modularcontents.custom.item.CustomContentManager;
 import modularcontents.custom.item.CustomBlockInfo;
 import modularcontents.custom.item.CustomFoodInfo;
 import modularcontents.custom.item.ItemCustomFood;
+import modularcontents.custom.item.CustomWeaponInfo;
+import modularcontents.custom.item.ItemCustomWeapon;
+import modularcontents.custom.item.CustomToolInfo;
+import modularcontents.custom.item.ItemCustomTool;
+import modularcontents.custom.item.CustomArmorInfo;
+import modularcontents.custom.item.ItemCustomArmor;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import modularcontents.custom.block.BlockCustom;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.block.Block;
@@ -284,6 +291,28 @@ public class ModularcontentsMod implements IGuiHandler {
             event.getRegistry().register(item);
         }
 
+        // Register Weapons
+        for (CustomWeaponInfo info : CustomContentManager.CUSTOM_WEAPONS.values()) {
+            Item item = new ItemCustomWeapon(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Tools
+        for (CustomToolInfo info : CustomContentManager.CUSTOM_TOOLS.values()) {
+            Item item = new ItemCustomTool(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Armor
+        for (CustomArmorInfo info : CustomContentManager.CUSTOM_ARMORS.values()) {
+            EntityEquipmentSlot slot = EntityEquipmentSlot.HEAD;
+            if (info.equipmentSlot.equalsIgnoreCase("chest")) slot = EntityEquipmentSlot.CHEST;
+            else if (info.equipmentSlot.equalsIgnoreCase("legs")) slot = EntityEquipmentSlot.LEGS;
+            else if (info.equipmentSlot.equalsIgnoreCase("feet")) slot = EntityEquipmentSlot.FEET;
+            Item item = new ItemCustomArmor(info, slot);
+            event.getRegistry().register(item);
+        }
+
         // Register Food
         for (CustomFoodInfo info : CustomContentManager.CUSTOM_FOODS.values()) {
             Item item = new ItemCustomFood(info);
@@ -300,6 +329,28 @@ public class ModularcontentsMod implements IGuiHandler {
                     }
                 }
             }
+            event.getRegistry().register(item);
+        }
+
+        // Register Weapons
+        for (CustomWeaponInfo info : CustomContentManager.CUSTOM_WEAPONS.values()) {
+            Item item = new ItemCustomWeapon(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Tools
+        for (CustomToolInfo info : CustomContentManager.CUSTOM_TOOLS.values()) {
+            Item item = new ItemCustomTool(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Armor
+        for (CustomArmorInfo info : CustomContentManager.CUSTOM_ARMORS.values()) {
+            EntityEquipmentSlot slot = EntityEquipmentSlot.HEAD;
+            if (info.equipmentSlot.equalsIgnoreCase("chest")) slot = EntityEquipmentSlot.CHEST;
+            else if (info.equipmentSlot.equalsIgnoreCase("legs")) slot = EntityEquipmentSlot.LEGS;
+            else if (info.equipmentSlot.equalsIgnoreCase("feet")) slot = EntityEquipmentSlot.FEET;
+            Item item = new ItemCustomArmor(info, slot);
             event.getRegistry().register(item);
         }
 

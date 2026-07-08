@@ -43,6 +43,13 @@ public class PacketLaptopAirdropHandler implements IMessageHandler<PacketLaptopA
                 return;
             }
 
+            if (player.getCooldownTracker().hasCooldown(net.minecraft.item.Item.getItemFromBlock(modularcontents.ModularcontentsMod.laptop))) {
+                player.sendMessage(new net.minecraft.util.text.TextComponentString(net.minecraft.util.text.TextFormatting.RED + "Airdrop is on cooldown."));
+                return;
+            }
+
+            player.getCooldownTracker().setCooldown(net.minecraft.item.Item.getItemFromBlock(modularcontents.ModularcontentsMod.laptop), modularcontents.custom.config.ModularContentsConfig.airdropCallerCooldown);
+
             int delayTicks = 200 + world.rand.nextInt(800); // 10-50 seconds
             EntityAirdrop airdrop = new EntityAirdrop(world, message.targetX, 250.0D, message.targetZ);
             airdrop.setDelayAndCaller(delayTicks, player.getName(), false, message.targetX, message.targetZ);

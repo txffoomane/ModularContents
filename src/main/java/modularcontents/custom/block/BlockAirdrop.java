@@ -59,6 +59,21 @@ public class BlockAirdrop extends BlockContainer {
     }
 
     @Override
+    protected boolean canSilkHarvest() {
+        return false;
+    }
+
+    @Override
+    public net.minecraft.item.ItemStack getItem(World worldIn, BlockPos pos, IBlockState state) {
+        return net.minecraft.item.ItemStack.EMPTY;
+    }
+
+    @Override
+    public net.minecraft.item.Item getItemDropped(IBlockState state, Random rand, int fortune) {
+        return net.minecraft.init.Items.AIR;
+    }
+
+    @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileEntityAirdrop();
     }
