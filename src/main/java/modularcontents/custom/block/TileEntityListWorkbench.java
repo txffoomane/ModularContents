@@ -67,7 +67,7 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
         }
     }
 
-    private void updateCraftingState(boolean isCraftingNow) {
+    protected void updateCraftingState(boolean isCraftingNow) {
         if (world != null && !world.isRemote) {
             IBlockState state = world.getBlockState(pos);
             if (state.getBlock() instanceof BlockListWorkbench) {

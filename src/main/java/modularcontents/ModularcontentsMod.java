@@ -179,6 +179,7 @@ public class ModularcontentsMod implements IGuiHandler {
 
         // Setup directories for custom recipes
         ListWorkbenchRecipeManager.setupDirectories(event.getModConfigurationDirectory().getParentFile());
+        modularcontents.custom.pack.CustomWorkbenchManager.loadWorkbenches(event.getModConfigurationDirectory().getParentFile());
 
         // Load custom tabs and content JSON definitions BEFORE item registration
         CustomTabManager.loadTabs(event.getModConfigurationDirectory().getParentFile());
@@ -252,6 +253,14 @@ public class ModularcontentsMod implements IGuiHandler {
         event.getRegistry().register(laptop);
         GameRegistry.registerTileEntity(TileEntityListWorkbench.class, "modularcontents:tile_list_workbench");
         GameRegistry.registerTileEntity(TileEntityAirdrop.class, "modularcontents:tile_airdrop");
+        GameRegistry.registerTileEntity(modularcontents.custom.block.TileEntityCustomWorkbench.class, "modularcontents:tile_custom_workbench");
+
+        // Register Custom Workbenches
+        for (modularcontents.custom.pack.WorkbenchConfig config : modularcontents.custom.pack.CustomWorkbenchManager.WORKBENCHES) {
+            Block block = new modularcontents.custom.block.BlockCustomWorkbench(config);
+            modularcontents.custom.pack.CustomWorkbenchManager.CUSTOM_WORKBENCH_BLOCKS.add(block);
+            event.getRegistry().register(block);
+        }
 
         // Register JSON Blocks
         for (CustomBlockInfo info : CustomContentManager.CUSTOM_BLOCKS.values()) {
@@ -284,6 +293,12 @@ public class ModularcontentsMod implements IGuiHandler {
         event.getRegistry().register(laptop_item);
         event.getRegistry().register(signal_flare);
         event.getRegistry().register(radio);
+
+        // Register Custom Workbench Items
+        for (Block block : modularcontents.custom.pack.CustomWorkbenchManager.CUSTOM_WORKBENCH_BLOCKS) {
+            Item item = new net.minecraft.item.ItemBlock(block).setRegistryName(block.getRegistryName());
+            event.getRegistry().register(item);
+        }
 
         // Register Basic Items
         for (modularcontents.custom.item.CustomItemInfo info : CustomContentManager.CUSTOM_ITEMS.values()) {
@@ -409,6 +424,11 @@ public class ModularcontentsMod implements IGuiHandler {
         ModelLoader.setCustomModelResourceLocation(laptop_item, 0, new ModelResourceLocation(laptop_item.getRegistryName(), "inventory"));
         ModelLoader.setCustomModelResourceLocation(signal_flare, 0, new ModelResourceLocation(signal_flare.getRegistryName(), "inventory"));
         ModelLoader.setCustomModelResourceLocation(radio, 0, new ModelResourceLocation(radio.getRegistryName(), "inventory"));
+
+        for (Block block : modularcontents.custom.pack.CustomWorkbenchManager.CUSTOM_WORKBENCH_BLOCKS) {
+            Item item = Item.getItemFromBlock(block);
+            if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+        }
 
         for (modularcontents.custom.item.CustomItemInfo info : CustomContentManager.CUSTOM_ITEMS.values()) {
             Item item = Item.getByNameOrId("modularcontents:" + info.id);

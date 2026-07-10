@@ -71,7 +71,7 @@ public final class PackZipUtils {
                         continue;
                     }
                     String normalized = entry.getName().replace('\\', '/');
-                    String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
+                    String lower2 = normalized.toLowerCase(Locale.ROOT); String folderLower2 = folder.toLowerCase(Locale.ROOT); int idx = lower2.indexOf("/" + folderLower2 + "/"); String fileName; if (idx != -1) { fileName = normalized.substring(idx + folderLower2.length() + 2); } else if (lower2.startsWith(folderLower2 + "/")) { fileName = normalized.substring(folderLower2.length() + 1); } else { fileName = normalized.substring(normalized.lastIndexOf('/') + 1); }
                     try (Reader reader = new InputStreamReader(zip.getInputStream(entry), StandardCharsets.UTF_8)) {
                         consumer.accept(fileName, reader, zipFile.getName());
                     } catch (Exception e) {
