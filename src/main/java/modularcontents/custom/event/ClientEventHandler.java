@@ -18,6 +18,10 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.KeyInputEvent event) {
+        if (KeybindManager.handcraftGui != null && KeybindManager.handcraftGui.isPressed()) {
+            ModularcontentsMod.PACKET_HANDLER.sendToServer(new modularcontents.custom.network.PacketOpenHandcraft());
+        }
+
         if (KeybindManager.openCreatorGui != null && KeybindManager.openCreatorGui.isPressed()) {
             Minecraft mc = Minecraft.getMinecraft();
             EntityPlayer player = mc.player;
