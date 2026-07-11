@@ -157,7 +157,7 @@ public class GuiListWorkbench extends GuiContainer {
         this.ySize = 240;
 
         this.categories.add("Favorites");
-        this.categories.addAll(ListWorkbenchRecipeManager.getCategories());
+        this.categories.addAll(ListWorkbenchRecipeManager.getCategories("workbench", te.getWorkbenchId()));
 
         if (categories.size() > 1) {
             currentCategoryIndex = 1;
@@ -199,11 +199,12 @@ public class GuiListWorkbench extends GuiContainer {
         String currentCat = categories.get(currentCategoryIndex);
 
         if (currentCat.equals("Favorites")) {
-            currentRecipes = ListWorkbenchRecipeManager.getAllRecipes().stream()
+            currentRecipes = ListWorkbenchRecipeManager.getAllRecipes().stream().filter(r -> r.type.equalsIgnoreCase("workbench") || r.type.equalsIgnoreCase("both"))
+                    .filter(r -> r.workbench != null && r.workbench.equalsIgnoreCase(te.getWorkbenchId()))
                     .filter(r -> FAVORITES.contains(r.id))
                     .collect(Collectors.toList());
         } else {
-            currentRecipes = ListWorkbenchRecipeManager.getRecipesInCategory(currentCat);
+            currentRecipes = ListWorkbenchRecipeManager.getRecipesInCategory(currentCat, "workbench", te.getWorkbenchId());
         }
 
         if (searchField != null && !searchField.getText().trim().isEmpty()) {

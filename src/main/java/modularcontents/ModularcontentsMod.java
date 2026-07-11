@@ -196,6 +196,9 @@ public class ModularcontentsMod implements IGuiHandler {
         PACKET_HANDLER.registerMessage(PacketCraftCancelHandler.class, PacketCraftCancel.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketLaptopAirdropHandler.class, PacketLaptopAirdrop.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketOpenCreatorHandler.class, PacketOpenCreator.class, packetId++, Side.SERVER);
+        PACKET_HANDLER.registerMessage(modularcontents.custom.network.PacketOpenHandcraft.Handler.class, modularcontents.custom.network.PacketOpenHandcraft.class, packetId++, Side.SERVER);
+        PACKET_HANDLER.registerMessage(modularcontents.custom.network.PacketHandcraftAction.Handler.class, modularcontents.custom.network.PacketHandcraftAction.class, packetId++, Side.SERVER);
+        PACKET_HANDLER.registerMessage(modularcontents.custom.network.PacketHandcraftSync.Handler.class, modularcontents.custom.network.PacketHandcraftSync.class, packetId++, Side.CLIENT);
         PACKET_HANDLER.registerMessage(PacketSyncContentHandler.class, PacketSyncContent.class, packetId++, Side.CLIENT);
         PACKET_HANDLER.registerMessage(PacketZoneLootHandler.class, PacketZoneLoot.class, packetId++, Side.SERVER);
         PACKET_HANDLER.registerMessage(PacketSyncZonesHandler.class, PacketSyncZones.class, packetId++, Side.CLIENT);
@@ -463,6 +466,9 @@ public class ModularcontentsMod implements IGuiHandler {
         if (id == 4) {
             return new ContainerContentCreator(player.inventory);
         }
+        if (id == 5) {
+            return new modularcontents.custom.inventory.ContainerHandcraft(player.inventory);
+        }
         return null;
     }
 
@@ -485,6 +491,9 @@ public class ModularcontentsMod implements IGuiHandler {
         }
         if (id == 4) {
             return new GuiContentCreator(player.inventory);
+        }
+        if (id == 5) {
+            return new modularcontents.custom.client.gui.GuiHandcraft(player.inventory);
         }
         return null;
     }

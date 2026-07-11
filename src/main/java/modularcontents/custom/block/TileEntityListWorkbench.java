@@ -53,6 +53,10 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
     public TileEntityListWorkbench() {
         Arrays.fill(queueRecipes, "");
     }
+    
+    public String getWorkbenchId() {
+        return "custom_workbench";
+    }
 
     @Override
     public void update() {

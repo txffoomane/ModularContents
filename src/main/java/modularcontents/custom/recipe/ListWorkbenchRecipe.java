@@ -7,6 +7,8 @@ import java.util.Random;
 
 public class ListWorkbenchRecipe {
     public String id;
+    public String type = "workbench"; // "workbench", "handcraft", or "both"
+    public String workbench = "custom_workbench"; // which workbench it belongs to (e.g. custom_workbench, metal_workbench)
     public String category = "general";
 
     // Legacy support
@@ -18,6 +20,7 @@ public class ListWorkbenchRecipe {
     public List<IngredientStack> inputs;
     public int craftingTime = 200;
     public int minDrops = 0;
+    public float movementModifier = 1.0f; // 1.0 = нормальная скорость, 0.0 = стоять на месте
 
     public List<ItemStack> getResults() {
         List<ItemStack> results = new ArrayList<>();

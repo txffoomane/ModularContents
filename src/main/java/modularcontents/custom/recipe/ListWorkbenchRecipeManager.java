@@ -79,29 +79,49 @@ public class ListWorkbenchRecipeManager {
             }
         }
 
-        PackZipUtils.loadJsonEntries(rootPacksDir, "recipes", (fileName, reader, packName) -> loadRecipe(reader, packName));
+        PackZipUtils.loadJsonEntries(rootPacksDir, "recipes", (fileName, reader, packName) -> loadRecipe(reader, packName, fileName));
     }
 
-    private static void loadRecipe(Reader reader, String packName) {
+    private static void loadRecipe(Reader reader, String packName, String fileName) {
         ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
         if (recipe != null && recipe.id != null) {
+            if (fileName != null && fileName.contains("/")) {
+                String topFolder = fileName.substring(0, fileName.indexOf('/'));
+
+                if (topFolder.equalsIgnoreCase("handcraft")) {
+                    // Если лежит в папке handcraft, автоматически делаем тип handcraft
+                    if (recipe.type == null || recipe.type.equals("workbench")) {
+                        recipe.type = "handcraft";
+                    }
+                } else {
+                    // Иначе считаем название папки ID верстака
+                    if (recipe.workbench == null || recipe.workbench.equals("custom_workbench")) {
+                        recipe.workbench = topFolder;
+                    }
+                }
+            }
             RECIPES.put(recipe.id, recipe);
-            LOGGER.info("Loaded custom workbench recipe '" + recipe.id + "' from pack '" + packName + "'");
+            LOGGER.info("Loaded recipe '" + recipe.id + "' (Type: " + recipe.type + (recipe.type.equals("handcraft") ? "" : ", Workbench: " + recipe.workbench) + ") from pack '" + packName + "'");
         }
     }
 
     private static void loadRecipesFromDir(File recipeDir, String packName) {
-        File[] files = recipeDir.listFiles((d, name) -> name.endsWith(".json"));
+        loadRecipesFromDirRecursive(recipeDir, recipeDir, packName);
+    }
+
+    private static void loadRecipesFromDirRecursive(File rootDir, File currentDir, String packName) {
+        File[] files = currentDir.listFiles();
         if (files != null) {
             for (File file : files) {
-                try (FileReader reader = new FileReader(file)) {
-                    ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
-                    if (recipe != null && recipe.id != null) {
-                        RECIPES.put(recipe.id, recipe);
-                        LOGGER.info("Loaded custom workbench recipe '" + recipe.id + "' from pack '" + packName + "'");
+                if (file.isDirectory()) {
+                    loadRecipesFromDirRecursive(rootDir, file, packName);
+                } else if (file.getName().endsWith(".json")) {
+                    try (FileReader reader = new FileReader(file)) {
+                        String relativePath = rootDir.toURI().relativize(file.toURI()).getPath();
+                        loadRecipe(reader, packName, relativePath);
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to load recipe: " + file.getName() + " in pack: " + packName, e);
                     }
-                } catch (Exception e) {
-                    LOGGER.error("Failed to load recipe: " + file.getName() + " in pack: " + packName, e);
                 }
             }
         }
@@ -206,8 +226,48 @@ public class ListWorkbenchRecipeManager {
                 .collect(Collectors.toList());
     }
 
+    public static List<String> getCategories(String type) {
+        return RECIPES.values().stream()
+                .filter(r -> r.type.equalsIgnoreCase(type) || r.type.equalsIgnoreCase("both"))
+                .map(r -> r.category != null && !r.category.isEmpty() ? r.category : "general")
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getCategories(String type, String workbenchId) {
+        return RECIPES.values().stream()
+                .filter(r -> r.type.equalsIgnoreCase(type) || r.type.equalsIgnoreCase("both"))
+                .filter(r -> r.workbench != null && r.workbench.equalsIgnoreCase(workbenchId))
+                .map(r -> r.category != null && !r.category.isEmpty() ? r.category : "general")
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     public static List<ListWorkbenchRecipe> getRecipesInCategory(String category) {
         return RECIPES.values().stream()
+                .filter(r -> {
+                    String cat = r.category != null && !r.category.isEmpty() ? r.category : "general";
+                    return cat.equalsIgnoreCase(category);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<ListWorkbenchRecipe> getRecipesInCategory(String category, String type) {
+        return RECIPES.values().stream()
+                .filter(r -> r.type.equalsIgnoreCase(type) || r.type.equalsIgnoreCase("both"))
+                .filter(r -> {
+                    String cat = r.category != null && !r.category.isEmpty() ? r.category : "general";
+                    return cat.equalsIgnoreCase(category);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<ListWorkbenchRecipe> getRecipesInCategory(String category, String type, String workbenchId) {
+        return RECIPES.values().stream()
+                .filter(r -> r.type.equalsIgnoreCase(type) || r.type.equalsIgnoreCase("both"))
+                .filter(r -> r.workbench != null && r.workbench.equalsIgnoreCase(workbenchId))
                 .filter(r -> {
                     String cat = r.category != null && !r.category.isEmpty() ? r.category : "general";
                     return cat.equalsIgnoreCase(category);
