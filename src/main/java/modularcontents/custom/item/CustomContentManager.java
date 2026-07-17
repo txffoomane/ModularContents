@@ -58,7 +58,9 @@ public class CustomContentManager {
                 loadJsonFiles(new File(packDir, "armor"), CustomArmorInfo.class, CUSTOM_ARMORS);
             }
         }
-        System.out.println("[ModularContents] Loaded " + CUSTOM_ITEMS.size() + " items, " + CUSTOM_BLOCKS.size() + " blocks, " + CUSTOM_FOODS.size() + " foods, " + CUSTOM_WEAPONS.size() + " weapons, " + CUSTOM_TOOLS.size() + " tools, " + CUSTOM_ARMORS.size() + " armors.");
+        System.out.println("[ModularContents] Loaded " + CUSTOM_ITEMS.size() + " items, " + CUSTOM_BLOCKS.size() + " blocks, " + CUSTOM_FOODS.size() + " foods, " + CUSTOM_WEAPONS.size() + " weapons, " + CustomContentManager.CUSTOM_TOOLS.size() + " tools, " + CustomContentManager.CUSTOM_ARMORS.size() + " armors.");
+        generateVariants();
+        LangGenerator.generateLangFiles(gameDir);
     }
 
     private static <T> void loadJsonFiles(File dir, Class<T> clazz, Map<String, T> map) {
@@ -87,5 +89,44 @@ public class CustomContentManager {
                 }
             }
         }
+    }
+
+    private static void generateVariants() {
+        java.util.Map<String, CustomBlockInfo> generated = new java.util.HashMap<>();
+        for (CustomBlockInfo info : CUSTOM_BLOCKS.values()) {
+            if (info.hasSlab) {
+                CustomBlockInfo slab = cloneBlock(info, "_slab", "slab");
+                generated.put(slab.id, slab);
+            }
+            if (info.hasStairs) {
+                CustomBlockInfo stair = cloneBlock(info, "_stairs", "stair");
+                generated.put(stair.id, stair);
+            }
+            if (info.hasFence) {
+                CustomBlockInfo fence = cloneBlock(info, "_fence", "fence");
+                generated.put(fence.id, fence);
+            }
+            if (info.hasWall) {
+                CustomBlockInfo wall = cloneBlock(info, "_wall", "wall");
+                generated.put(wall.id, wall);
+            }
+        }
+        CUSTOM_BLOCKS.putAll(generated);
+    }
+
+    private static CustomBlockInfo cloneBlock(CustomBlockInfo original, String suffix, String newType) {
+        CustomBlockInfo clone = new CustomBlockInfo();
+        clone.id = original.id + suffix;
+        clone.displayName = original.displayName;
+        clone.creativeTab = original.creativeTab;
+        clone.material = original.material;
+        clone.hardness = original.hardness;
+        clone.resistance = original.resistance;
+        clone.lightLevel = original.lightLevel;
+        clone.toolClass = original.toolClass;
+        clone.harvestLevel = original.harvestLevel;
+        clone.texture = (original.texture != null && !original.texture.isEmpty()) ? original.texture : original.id;
+        clone.blockType = newType;
+        return clone;
     }
 }

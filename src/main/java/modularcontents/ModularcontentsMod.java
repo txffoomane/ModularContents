@@ -267,7 +267,20 @@ public class ModularcontentsMod implements IGuiHandler {
 
         // Register JSON Blocks
         for (CustomBlockInfo info : CustomContentManager.CUSTOM_BLOCKS.values()) {
-            BlockCustom block = new BlockCustom(info);
+            Block block;
+            if ("stair".equalsIgnoreCase(info.blockType)) {
+                block = new modularcontents.custom.block.BlockCustomStairs(info);
+            } else if ("slab".equalsIgnoreCase(info.blockType)) {
+                modularcontents.custom.block.BlockCustomSlab half = new modularcontents.custom.block.BlockCustomSlab(info, false);
+                modularcontents.custom.block.BlockCustomSlab doubleSlab = new modularcontents.custom.block.BlockCustomSlab(info, true);
+                modularcontents.custom.block.BlockCustomSlab.SLABS.put(half, doubleSlab);
+                event.getRegistry().register(doubleSlab);
+                block = half;
+            } else if ("fence".equalsIgnoreCase(info.blockType)) {
+                block = new modularcontents.custom.block.BlockCustomFence(info);
+            } else {
+                block = new BlockCustom(info);
+            }
             if (info.creativeTab != null && !info.creativeTab.isEmpty()) {
                 if (CustomTabManager.CUSTOM_TABS.containsKey(info.creativeTab)) {
                     block.setCreativeTab(CustomTabManager.CUSTOM_TABS.get(info.creativeTab));
@@ -376,7 +389,18 @@ public class ModularcontentsMod implements IGuiHandler {
         for (CustomBlockInfo info : CustomContentManager.CUSTOM_BLOCKS.values()) {
             Block block = ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation("modularcontents", info.id));
             if (block != null) {
-                ItemBlock itemBlock = new ItemBlock(block);
+                net.minecraft.item.Item itemBlock;
+                if (block instanceof modularcontents.custom.block.BlockCustomSlab) {
+                    modularcontents.custom.block.BlockCustomSlab half = (modularcontents.custom.block.BlockCustomSlab) block;
+                    modularcontents.custom.block.BlockCustomSlab doubleSlab = modularcontents.custom.block.BlockCustomSlab.SLABS.get(half);
+                    if (doubleSlab != null) {
+                        itemBlock = new net.minecraft.item.ItemSlab(half, half, doubleSlab);
+                    } else {
+                        itemBlock = new net.minecraft.item.ItemBlock(block);
+                    }
+                } else {
+                    itemBlock = new net.minecraft.item.ItemBlock(block);
+                }
                 itemBlock.setRegistryName(block.getRegistryName());
                 event.getRegistry().register(itemBlock);
             }

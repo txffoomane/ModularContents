@@ -28,4 +28,22 @@ public class CustomBlockInfo {
 
     @SerializedName("harvest_level")
     public int harvestLevel = 0; // 0=wood/gold, 1=stone, 2=iron, 3=diamond
+
+    @SerializedName("block_type")
+    public String blockType = "block"; // block, slab, stair
+
+    @SerializedName("texture")
+    public String texture = "";
+
+    @SerializedName("has_slab")
+    public boolean hasSlab = false;
+
+    @SerializedName("has_stairs")
+    public boolean hasStairs = false;
+
+    @SerializedName("has_fence")
+    public boolean hasFence = false;
+
+    @SerializedName("has_wall")
+    public boolean hasWall = false;
 }

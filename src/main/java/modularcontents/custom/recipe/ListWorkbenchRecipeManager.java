@@ -141,7 +141,12 @@ public class ListWorkbenchRecipeManager {
             "vanilla_beacon.json",
             "vanilla_enchanting_table.json",
             "vanilla_defense_kit.json",
-            "vanilla_ore_processing.json"
+            "vanilla_ore_processing.json",
+            "metal_workbench/metal_planks.json",
+            "gun_workbench/ak47_example.json",
+            "handcraft/handcraft_planks.json",
+            "handcraft/handcraft_sticks.json",
+            "handcraft/handcraft_torches.json"
     };
 
     private static final String[] EXAMPLE_PACK_LOOT_TABLES = {
@@ -156,6 +161,21 @@ public class ListWorkbenchRecipeManager {
             "medick.json"
     };
 
+    private static final String[] EXAMPLE_PACK_WORKBENCHES = {
+            "metal_workbench.json",
+            "gun_workbench.json"
+    };
+
+    private static final String[] EXAMPLE_PACK_BLOCKS = {
+            "test_block.json",
+            "test_slab.json",
+            "test_stair.json"
+    };
+
+    private static final String[] EXAMPLE_PACK_TEXTURES = {
+            "test_block.png"
+    };
+
     private static void createExamplePack(File rootPacksDir) {
         try {
             File examplePackDir = new File(rootPacksDir, "example_pack");
@@ -165,8 +185,14 @@ public class ListWorkbenchRecipeManager {
                     "/assets/modularcontents/example_pack/loot_tables/airdrops/", EXAMPLE_PACK_LOOT_TABLES);
             int equipment = copyExampleResources(new File(new File(examplePackDir, "loot_tables"), "equipment"),
                     "/assets/modularcontents/example_pack/loot_tables/equipment/", EXAMPLE_PACK_EQUIPMENT);
+            int blocks = copyExampleResources(new File(examplePackDir, "blocks"),
+                    "/assets/modularcontents/example_pack/blocks/", EXAMPLE_PACK_BLOCKS);
+            int workbenches = copyExampleResources(new File(examplePackDir, "workbenches"),
+                    "/assets/modularcontents/example_pack/workbenches/", EXAMPLE_PACK_WORKBENCHES);
+            int textures = copyExampleResources(new File(new File(examplePackDir, "textures"), "blocks"),
+                    "/assets/modularcontents/example_pack/textures/blocks/", EXAMPLE_PACK_TEXTURES);
 
-            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables, " + equipment + " equipment presets) in ModularContents/example_pack");
+            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables, " + equipment + " equipment presets, " + blocks + " blocks, " + workbenches + " workbenches, " + textures + " textures) in ModularContents/example_pack");
         } catch (Exception e) {
             LOGGER.error("Failed to create example content pack", e);
         }
@@ -182,7 +208,11 @@ public class ListWorkbenchRecipeManager {
                     LOGGER.warn("Example pack resource missing in jar: " + resourcePath);
                     continue;
                 }
-                Files.copy(in, new File(targetDir, fileName).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                File targetFile = new File(targetDir, fileName);
+                if (targetFile.getParentFile() != null) {
+                    targetFile.getParentFile().mkdirs();
+                }
+                Files.copy(in, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 copied++;
             }
         }

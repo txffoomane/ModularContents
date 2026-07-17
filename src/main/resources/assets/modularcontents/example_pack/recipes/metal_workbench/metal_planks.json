@@ -1,0 +1,17 @@
+{
+  "id": "metal_planks",
+  "category": "Metalworking",
+  "output": {
+    "item": "minecraft:iron_ingot",
+    "count": 1,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:iron_ore",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 100
+}

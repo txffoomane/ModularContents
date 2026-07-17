@@ -1,0 +1,18 @@
+{
+  "id": "handcraft_planks",
+  "category": "Basics",
+  "output": {
+    "item": "minecraft:planks",
+    "count": 4,
+    "meta": 0
+  },
+  "inputs": [
+    {
+      "item": "minecraft:log",
+      "count": 1,
+      "meta": 0
+    }
+  ],
+  "craftingTime": 20,
+  "movementModifier": 0.5
+}

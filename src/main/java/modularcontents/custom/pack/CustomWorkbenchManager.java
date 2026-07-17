@@ -23,6 +23,13 @@ public class CustomWorkbenchManager {
     public static final List<WorkbenchConfig> WORKBENCHES = new ArrayList<>();
     public static final List<Block> CUSTOM_WORKBENCH_BLOCKS = new ArrayList<>();
 
+    public static WorkbenchConfig getWorkbench(String id) {
+        for (WorkbenchConfig config : WORKBENCHES) {
+            if (config.id.equals(id)) return config;
+        }
+        return null;
+    }
+
     public static void loadWorkbenches(File gameDir) {
         WORKBENCHES.clear();
         File rootPacksDir = new File(gameDir, "ModularContents");

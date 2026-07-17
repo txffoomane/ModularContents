@@ -1,0 +1,10 @@
+{
+  "id": "test_block",
+  "display_name": "Test Block",
+  "creative_tab": "buildingBlocks",
+  "material": "rock",
+  "hardness": 1.5,
+  "resistance": 10.0,
+  "block_type": "block",
+  "texture": "test_block"
+}

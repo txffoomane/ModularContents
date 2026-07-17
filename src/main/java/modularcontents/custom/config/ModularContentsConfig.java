@@ -8,6 +8,7 @@ public class ModularContentsConfig {
     public static Configuration config;
 
     public static boolean generateExamplePack = true;
+    public static boolean tarkovLootingEnabled = true;
     public static boolean globalAirdropsEnabled = false;
     public static int globalAirdropIntervalDays = 3;
     public static int globalAirdropMinRadius = 100;
@@ -40,6 +41,10 @@ public class ModularContentsConfig {
 
         config.load();
         generateExamplePack = config.getBoolean("Generate Example Pack", Configuration.CATEGORY_GENERAL, true, "Should the mod generate an example content pack with recipes on first launch?");
+
+        String lootCat = "Loot Settings";
+        config.addCustomCategoryComment(lootCat, "Settings for loot and chests");
+        tarkovLootingEnabled = config.getBoolean("Tarkov Style Looting", lootCat, true, "If enabled, items restocked in zone containers will be hidden initially and revealed over time as the player keeps the container open.");
 
         String callerCat = "Caller Items";
         config.addCustomCategoryComment(callerCat, "Settings for items that call airdrops");

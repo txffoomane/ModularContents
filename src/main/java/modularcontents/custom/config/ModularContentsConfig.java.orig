@@ -5,12 +5,16 @@ import java.io.File;
 
 public class ModularContentsConfig {
 
+    public static Configuration config;
+
     public static boolean generateExamplePack = true;
     public static boolean globalAirdropsEnabled = false;
     public static int globalAirdropIntervalDays = 3;
     public static int globalAirdropMinRadius = 100;
     public static int globalAirdropMaxRadius = 500;
     public static String[] globalAirdropLootTables = new String[0]; // Empty means all allowed
+
+    public static int airdropCallerCooldown = 1200;
 
     public static String[] workbenchRecipeShape = new String[] { "BCB", "IAI", "I I" };
     public static String[] workbenchRecipeKeys = new String[] {
@@ -26,10 +30,20 @@ public class ModularContentsConfig {
             configDir.mkdirs();
         }
         File configFile = new File(configDir, "modularcontents_settings.cfg");
-        Configuration config = new Configuration(configFile);
+        config = new Configuration(configFile);
+
+        syncConfig();
+    }
+
+    public static void syncConfig() {
+        if (config == null) return;
 
         config.load();
         generateExamplePack = config.getBoolean("Generate Example Pack", Configuration.CATEGORY_GENERAL, true, "Should the mod generate an example content pack with recipes on first launch?");
+
+        String callerCat = "Caller Items";
+        config.addCustomCategoryComment(callerCat, "Settings for items that call airdrops");
+        airdropCallerCooldown = config.getInt("Cooldown (Ticks)", callerCat, 1200, 0, 72000, "Cooldown in ticks (20 ticks = 1 second) after using an airdrop caller item");
 
         String airdropCat = "Global Airdrops";
         config.addCustomCategoryComment(airdropCat, "Settings for automatic global airdrops in the world");

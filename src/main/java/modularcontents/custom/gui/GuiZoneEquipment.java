@@ -71,6 +71,7 @@ public class GuiZoneEquipment extends GuiScreen {
     private UUID editId = null;
     private GuiTextField nameField;
     private GuiTextField colorField;
+    private GuiTextField respawnField;
 
     private float scroll = 0.0f;
     private float targetScroll = 0.0f;
@@ -121,13 +122,15 @@ public class GuiZoneEquipment extends GuiScreen {
         this.buttonList.add(this.clearButton);
         this.buttonList.add(this.backButton);
 
-        this.nameField = new GuiTextField(10, this.fontRenderer, presetPanelX, buttonsY - 44, PRESET_PANEL_WIDTH, 14);
+        this.nameField = new GuiTextField(10, this.fontRenderer, presetPanelX, buttonsY - 68, PRESET_PANEL_WIDTH, 14);
         this.nameField.setMaxStringLength(32);
         this.nameField.setText("Zone");
-
-        this.colorField = new GuiTextField(11, this.fontRenderer, presetPanelX, buttonsY - 20, PRESET_PANEL_WIDTH, 14);
+        this.colorField = new GuiTextField(11, this.fontRenderer, presetPanelX, buttonsY - 44, PRESET_PANEL_WIDTH, 14);
         this.colorField.setMaxStringLength(8);
         this.colorField.setText("88FFAA00");
+        this.respawnField = new GuiTextField(12, this.fontRenderer, presetPanelX, buttonsY - 20, PRESET_PANEL_WIDTH, 14);
+        this.respawnField.setMaxStringLength(10);
+        this.respawnField.setText("6000");
 
         if (this.textureId == -1) {
             generateMinimap();
@@ -176,7 +179,7 @@ public class GuiZoneEquipment extends GuiScreen {
     }
 
     private int presetListBottom() {
-        return firstButtonY() - 8;
+        return firstButtonY() - 86;
     }
 
     private int sliderX() {
@@ -402,10 +405,12 @@ public class GuiZoneEquipment extends GuiScreen {
 
         int presetPanelX = presetPanelX();
         int buttonsY = firstButtonY();
-        this.drawString(this.fontRenderer, "Name:", presetPanelX, buttonsY - 56, COL_TEXT_DIM);
+        this.drawString(this.fontRenderer, "Name:", presetPanelX, buttonsY - 80, COL_TEXT_DIM);
         this.nameField.drawTextBox();
-        this.drawString(this.fontRenderer, "Color (Hex):", presetPanelX, buttonsY - 32, COL_TEXT_DIM);
+        this.drawString(this.fontRenderer, "Color (Hex):", presetPanelX, buttonsY - 56, COL_TEXT_DIM);
         this.colorField.drawTextBox();
+        this.drawString(this.fontRenderer, "Respawn (ticks):", presetPanelX, buttonsY - 32, COL_TEXT_DIM);
+        this.respawnField.drawTextBox();
 
         super.drawScreen(mouseX, mouseY, partialTicks);
 
@@ -672,6 +677,7 @@ public class GuiZoneEquipment extends GuiScreen {
 
         this.nameField.mouseClicked(mouseX, mouseY, mouseButton);
         this.colorField.mouseClicked(mouseX, mouseY, mouseButton);
+        this.respawnField.mouseClicked(mouseX, mouseY, mouseButton);
 
         if (isInsideMap(mouseX, mouseY)) {
             int wx = worldXFromMouse(mouseX);
@@ -689,6 +695,7 @@ public class GuiZoneEquipment extends GuiScreen {
                 this.editId = clickedZone.id;
                 this.nameField.setText(clickedZone.name);
                 this.colorField.setText(String.format("%08X", clickedZone.color));
+                this.respawnField.setText(String.valueOf(clickedZone.respawnIntervalTicks));
                 this.selMinX = clickedZone.minX;
                 this.selMaxX = clickedZone.maxX;
                 this.selMinZ = clickedZone.minZ;
@@ -767,6 +774,9 @@ public class GuiZoneEquipment extends GuiScreen {
         if (this.colorField.textboxKeyTyped(typedChar, keyCode)) {
             return;
         }
+        if (this.respawnField.textboxKeyTyped(typedChar, keyCode)) {
+            return;
+        }
         super.keyTyped(typedChar, keyCode);
     }
 
@@ -775,6 +785,7 @@ public class GuiZoneEquipment extends GuiScreen {
         super.updateScreen();
         if (this.nameField != null) this.nameField.updateCursorCounter();
         if (this.colorField != null) this.colorField.updateCursorCounter();
+        if (this.respawnField != null) this.respawnField.updateCursorCounter();
         refreshContainers();
     }
 
@@ -806,8 +817,13 @@ public class GuiZoneEquipment extends GuiScreen {
                 color = (int) Long.parseLong(this.colorField.getText(), 16);
             } catch (NumberFormatException ignored) {}
 
+            int respawnTicks = 6000;
+            try {
+                respawnTicks = Integer.parseInt(this.respawnField.getText());
+            } catch (NumberFormatException ignored) {}
+
             ModularcontentsMod.PACKET_HANDLER.sendToServer(
-                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, false, true, name, 6000, color, this.editId, selections)); // 6000 ticks = 5 minutes respawn
+                    new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, false, true, name, respawnTicks, color, this.editId, selections));
         } else if (button.id == 1) {
             ModularcontentsMod.PACKET_HANDLER.sendToServer(
                     new PacketZoneLoot(selMinX, selMinZ, selMaxX, selMaxZ, true, false, null, 0, 0, null, new ArrayList<>()));
