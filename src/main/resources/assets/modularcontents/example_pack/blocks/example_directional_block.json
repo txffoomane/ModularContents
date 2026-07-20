@@ -1,0 +1,12 @@
+{
+  "id": "example_directional_block",
+  "name": "Направленный Блок (Вращается)",
+  "hardness": 2.0,
+  "material": "wood",
+  "rotation_type": "horizontal",
+  "texture_top": "modularcontents:blocks/example_dir_top",
+  "texture_bottom": "modularcontents:blocks/example_dir_bottom",
+  "texture_front": "modularcontents:blocks/example_dir_front",
+  "texture_side": "modularcontents:blocks/example_dir_side",
+  "creative_tab": "example_tab"
+}

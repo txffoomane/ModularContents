@@ -1,20 +1,5 @@
 package modularcontents.custom.client.gui;
 
-<<<<<<< HEAD
-import modularcontents.custom.inventory.ContainerHandcraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.util.ResourceLocation;
-
-public class GuiHandcraft extends GuiContainer {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("modularcontents", "textures/gui/handcraft.png");
-
-    public GuiHandcraft(InventoryPlayer playerInv) {
-        super(new ContainerHandcraft(playerInv));
-        this.xSize = 256;
-        this.ySize = 224;
-=======
 import modularcontents.ModularcontentsMod;
 import modularcontents.custom.inventory.ContainerHandcraft;
 import modularcontents.custom.network.PacketHandcraftAction;
@@ -154,6 +139,7 @@ public class GuiHandcraft extends GuiContainer {
 
     private int selectedRecipeIndex = -1;
     private int craftAmount = 1;
+    private long openTime;
 
     public GuiHandcraft(InventoryPlayer playerInv) {
         super(new ContainerHandcraft(playerInv));
@@ -249,6 +235,7 @@ public class GuiHandcraft extends GuiContainer {
     @Override
     public void initGui() {
         super.initGui();
+        openTime = System.currentTimeMillis();
         Keyboard.enableRepeatEvents(true);
 
         btnCatPrev = new FlatButton(4, guiLeft + 8, guiTop + 5, 12, 12, "<");
@@ -409,6 +396,32 @@ public class GuiHandcraft extends GuiContainer {
             int affordable = have / totalNeeded;
             if (affordable < max) max = affordable;
         }
+
+        if (max > 0) {
+            boolean canFit = false;
+            if (playerInv.getFirstEmptyStack() != -1) {
+                canFit = true;
+            } else {
+                for (IngredientStack out : recipe.outputs) {
+                    if (out == null || out.chance < 100.0f) continue;
+                    ItemStack res = out.toItemStack();
+                    if (!res.isEmpty()) {
+                        for (ItemStack invStack : playerInv.mainInventory) {
+                            if (!invStack.isEmpty() && invStack.isItemEqual(res) && ItemStack.areItemStackTagsEqual(invStack, res)) {
+                                if (invStack.getCount() + res.getCount() <= invStack.getMaxStackSize()) {
+                                    canFit = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (!canFit) {
+                max = 0;
+            }
+        }
+
         return max;
     }
 
@@ -464,16 +477,31 @@ public class GuiHandcraft extends GuiContainer {
             }
         }
         return count;
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
+
+        float animProgress = Math.min(1.0f, (System.currentTimeMillis() - openTime) / 200.0f);
+        // ease-out cubic
+        animProgress = 1.0f - (float) Math.pow(1.0f - animProgress, 3);
+
+        GlStateManager.pushMatrix();
+        if (animProgress < 1.0f) {
+            float scale = 0.8f + 0.2f * animProgress;
+            float cx = this.width / 2.0f;
+            float cy = this.height / 2.0f;
+            GlStateManager.translate(cx, cy, 0);
+            GlStateManager.scale(scale, scale, 1.0f);
+            GlStateManager.translate(-cx, -cy, 0);
+
+            GlStateManager.enableBlend();
+            GlStateManager.color(1.0f, 1.0f, 1.0f, animProgress);
+        }
+
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.renderHoveredToolTip(mouseX, mouseY);
-<<<<<<< HEAD
-=======
 
         if (gridMode) {
             int hoverIndex = getGridIndexAt(mouseX, mouseY);
@@ -484,6 +512,8 @@ public class GuiHandcraft extends GuiContainer {
                 }
             }
         }
+
+        GlStateManager.popMatrix();
     }
 
     private void drawSlotBox(int x, int y) {
@@ -585,18 +615,11 @@ public class GuiHandcraft extends GuiContainer {
         int index = row * GRID_COLS + col;
         if (index < 0 || index >= currentRecipes.size()) return -1;
         return index;
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
     }
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-<<<<<<< HEAD
-        this.mc.getTextureManager().bindTexture(TEXTURE);
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
-        this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
-=======
 
         long now = System.nanoTime();
         float dt = lastFrameTime == 0L ? 0.016f : Math.min(0.1f, (now - lastFrameTime) / 1.0e9f);
@@ -825,18 +848,6 @@ public class GuiHandcraft extends GuiContainer {
 
             drawRect(guiLeft + RIGHT_X0, guiTop + 119, guiLeft + RIGHT_X1, guiTop + 120, COL_LINE);
         }
-
-        int outX = guiLeft + 260;
-        int outY = guiTop + 122;
-        for (int i = 0; i < 3; i++) {
-            drawRect(outX + i * 18 - 1, outY - 1, outX + i * 18 + 17, outY + 17, COL_BORDER);
-            drawRect(outX + i * 18, outY, outX + i * 18 + 16, outY + 16, COL_PANEL_L);
-            drawRect(outX + i * 18, outY, outX + i * 18 + 16, outY + 1, 0x55000000);
-            drawRect(outX + i * 18, outY, outX + i * 18 + 1, outY + 16, 0x55000000);
-        }
-        String outLabel = "Output";
-        int outWidth = 3 * 18 - 2;
-        this.fontRenderer.drawString(outLabel, outX + outWidth / 2 - this.fontRenderer.getStringWidth(outLabel) / 2, outY + 20, COL_TEXT_DIM);
     }
 
     @Override
@@ -906,6 +917,5 @@ public class GuiHandcraft extends GuiContainer {
             isScrolling = false;
             isReqScrolling = false;
         }
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
     }
 }

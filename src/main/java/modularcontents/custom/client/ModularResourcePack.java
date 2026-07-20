@@ -79,7 +79,13 @@ public class ModularResourcePack implements IResourcePack {
                 } else if (type.equals("slab")) {
                     generatedJson = "{\n  \"variants\": {\n    \"half=bottom,variant=default\": { \"model\": \"modularcontents:" + blockId + "\" },\n    \"half=top,variant=default\": { \"model\": \"modularcontents:" + blockId + "_top\" }\n  }\n}";
                 } else {
-                    generatedJson = "{\n  \"variants\": {\n    \"normal\": { \"model\": \"modularcontents:" + blockId + "\" }\n  }\n}";
+                    if ("horizontal".equalsIgnoreCase(info.rotationType)) {
+                        generatedJson = "{\n  \"variants\": {\n    \"facing=north\": { \"model\": \"modularcontents:" + blockId + "\" },\n    \"facing=south\": { \"model\": \"modularcontents:" + blockId + "\", \"y\": 180 },\n    \"facing=west\":  { \"model\": \"modularcontents:" + blockId + "\", \"y\": 270 },\n    \"facing=east\":  { \"model\": \"modularcontents:" + blockId + "\", \"y\": 90 }\n  }\n}";
+                    } else if ("log".equalsIgnoreCase(info.rotationType)) {
+                        generatedJson = "{\n  \"variants\": {\n    \"axis=y\": { \"model\": \"modularcontents:" + blockId + "\" },\n    \"axis=z\": { \"model\": \"modularcontents:" + blockId + "\", \"x\": 90 },\n    \"axis=x\": { \"model\": \"modularcontents:" + blockId + "\", \"x\": 90, \"y\": 90 },\n    \"axis=none\": { \"model\": \"modularcontents:" + blockId + "\" }\n  }\n}";
+                    } else {
+                        generatedJson = "{\n  \"variants\": {\n    \"normal\": { \"model\": \"modularcontents:" + blockId + "\" }\n  }\n}";
+                    }
                 }
                 return new ByteArrayInputStream(generatedJson.getBytes(StandardCharsets.UTF_8));
             } else if (modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(blockId) != null) {
@@ -97,34 +103,96 @@ public class ModularResourcePack implements IResourcePack {
                 modularcontents.custom.item.CustomBlockInfo info = CustomContentManager.CUSTOM_BLOCKS.get(baseId);
                 String tex = info.texture != null && !info.texture.isEmpty() ? info.texture : baseId;
                 if (baseId.endsWith("_slab") && tex.equals(baseId)) tex = baseId.substring(0, baseId.length() - 5);
+
+                boolean hasTop = info.textureTop != null && !info.textureTop.isEmpty();
+                boolean hasBottom = info.textureBottom != null && !info.textureBottom.isEmpty();
+                boolean hasFront = info.textureFront != null && !info.textureFront.isEmpty();
+                boolean hasSide = info.textureSide != null && !info.textureSide.isEmpty();
+
+                String tTop = hasTop ? "modularcontents:blocks/" + info.textureTop : "modularcontents:blocks/" + tex;
+                String tBottom = hasBottom ? "modularcontents:blocks/" + info.textureBottom : "modularcontents:blocks/" + tex;
+                String tSide = hasSide ? "modularcontents:blocks/" + info.textureSide : "modularcontents:blocks/" + tex;
+                String tFront = hasFront ? "modularcontents:blocks/" + info.textureFront : tSide;
+
                 String texPath = "modularcontents:blocks/" + tex;
                 String generatedJson = "";
 
                 if (isDoubleSlabModel) {
-                    generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                    if (hasTop || hasBottom || hasFront || hasSide) {
+                         generatedJson = "{\n  \"parent\": \"block/orientable\",\n  \"textures\": {\n" +
+                             "    \"top\": \"" + tTop + "\",\n" +
+                             "    \"bottom\": \"" + tBottom + "\",\n" +
+                             "    \"front\": \"" + tFront + "\",\n" +
+                             "    \"side\": \"" + tSide + "\"\n" +
+                             "  }\n}";
+                    } else {
+                        generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                    }
                 } else if (blockId.endsWith("_inner")) {
-                    generatedJson = "{\n  \"parent\": \"block/inner_stairs\",\n  \"textures\": {\n    \"bottom\": \"" + texPath + "\",\n    \"top\": \"" + texPath + "\",\n    \"side\": \"" + texPath + "\"\n  }\n}";
+                    generatedJson = "{\n  \"parent\": \"block/inner_stairs\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                 } else if (blockId.endsWith("_outer")) {
-                    generatedJson = "{\n  \"parent\": \"block/outer_stairs\",\n  \"textures\": {\n    \"bottom\": \"" + texPath + "\",\n    \"top\": \"" + texPath + "\",\n    \"side\": \"" + texPath + "\"\n  }\n}";
+                    generatedJson = "{\n  \"parent\": \"block/outer_stairs\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                 } else if (blockId.endsWith("_top")) {
-                    generatedJson = "{\n  \"parent\": \"block/upper_slab\",\n  \"textures\": {\n    \"bottom\": \"" + texPath + "\",\n    \"top\": \"" + texPath + "\",\n    \"side\": \"" + texPath + "\"\n  }\n}";
+                    generatedJson = "{\n  \"parent\": \"block/upper_slab\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                 } else {
                     String type = info.blockType != null ? info.blockType.toLowerCase() : "block";
                     if (type.equals("stair")) {
-                        generatedJson = "{\n  \"parent\": \"block/stairs\",\n  \"textures\": {\n    \"bottom\": \"" + texPath + "\",\n    \"top\": \"" + texPath + "\",\n    \"side\": \"" + texPath + "\"\n  }\n}";
+                        generatedJson = "{\n  \"parent\": \"block/stairs\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                     } else if (type.equals("slab")) {
                         if (isDoubleSlabModel) {
-                            generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                            if (hasTop || hasBottom || hasFront || hasSide) {
+                                 generatedJson = "{\n  \"parent\": \"block/orientable\",\n  \"textures\": {\n" +
+                                     "    \"top\": \"" + tTop + "\",\n" +
+                                     "    \"bottom\": \"" + tBottom + "\",\n" +
+                                     "    \"front\": \"" + tFront + "\",\n" +
+                                     "    \"side\": \"" + tSide + "\"\n" +
+                                     "  }\n}";
+                            } else {
+                                generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                            }
                         } else {
-                            generatedJson = "{\n  \"parent\": \"block/half_slab\",\n  \"textures\": {\n    \"bottom\": \"" + texPath + "\",\n    \"top\": \"" + texPath + "\",\n    \"side\": \"" + texPath + "\"\n  }\n}";
+                            generatedJson = "{\n  \"parent\": \"block/half_slab\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                         }
                     } else {
-                        generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                        if (hasTop || hasBottom || hasFront || hasSide) {
+                             generatedJson = "{\n  \"parent\": \"block/orientable\",\n  \"textures\": {\n" +
+                                 "    \"top\": \"" + tTop + "\",\n" +
+                                 "    \"bottom\": \"" + tBottom + "\",\n" +
+                                 "    \"front\": \"" + tFront + "\",\n" +
+                                 "    \"side\": \"" + tSide + "\"\n" +
+                                 "  }\n}";
+                        } else {
+                            generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"" + texPath + "\"\n  }\n}";
+                        }
                     }
                 }
                 return new ByteArrayInputStream(generatedJson.getBytes(StandardCharsets.UTF_8));
             } else if (modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(blockId) != null) {
-                 String generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"modularcontents:blocks/" + blockId + "\"\n  }\n}";
+                 modularcontents.custom.pack.WorkbenchConfig config = modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(blockId);
+                 String generatedJson = "";
+                 String tex = config.texture != null && !config.texture.isEmpty() ? config.texture : blockId;
+
+                 boolean hasTop = config.textureTop != null && !config.textureTop.isEmpty();
+                 boolean hasBottom = config.textureBottom != null && !config.textureBottom.isEmpty();
+                 boolean hasFront = config.textureFront != null && !config.textureFront.isEmpty();
+                 boolean hasSide = config.textureSide != null && !config.textureSide.isEmpty();
+
+                 if (hasTop || hasBottom || hasFront || hasSide) {
+                     String tTop = hasTop ? config.textureTop : tex;
+                     String tBottom = hasBottom ? config.textureBottom : tex;
+                     String tFront = hasFront ? config.textureFront : (hasSide ? config.textureSide : tex);
+                     String tSide = hasSide ? config.textureSide : tex;
+
+                     generatedJson = "{\n  \"parent\": \"block/orientable\",\n  \"textures\": {\n" +
+                             "    \"top\": \"modularcontents:blocks/" + tTop + "\",\n" +
+                             "    \"bottom\": \"modularcontents:blocks/" + tBottom + "\",\n" +
+                             "    \"front\": \"modularcontents:blocks/" + tFront + "\",\n" +
+                             "    \"side\": \"modularcontents:blocks/" + tSide + "\"\n" +
+                             "  }\n}";
+                 } else {
+                     generatedJson = "{\n  \"parent\": \"block/cube_all\",\n  \"textures\": {\n    \"all\": \"modularcontents:blocks/" + tex + "\"\n  }\n}";
+                 }
+
                  return new ByteArrayInputStream(generatedJson.getBytes(StandardCharsets.UTF_8));
             }
         }

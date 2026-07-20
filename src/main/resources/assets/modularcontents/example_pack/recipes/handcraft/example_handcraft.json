@@ -1,0 +1,11 @@
+{
+  "id": "craft_basic_item",
+  "type": "handcraft",
+  "inputs": [
+    {"item": "minecraft:dirt", "count": 2}
+  ],
+  "outputs": [
+    {"item": "modularcontents:example_item", "count": 1, "chance": 100}
+  ],
+  "category": "Materials"
+}

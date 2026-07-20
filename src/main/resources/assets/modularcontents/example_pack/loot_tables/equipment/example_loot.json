@@ -1,0 +1,13 @@
+{
+  "sets": [
+    {
+      "name": "example_loot_set",
+      "chance": 30.0,
+      "items": [
+        { "item": "modularcontents:example_food", "count": 2 },
+        { "item": "modularcontents:example_item", "count": 5 },
+        { "item": "minecraft:diamond", "count": 1, "nbt": "{display:{Name:\"Редкий Алмаз\"}}" }
+      ]
+    }
+  ]
+}

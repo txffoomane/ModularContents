@@ -1,0 +1,24 @@
+{
+  "id": "craft_advanced_sword",
+  "type": "workbench",
+  "workbench": "example_workbench",
+  "inputs": [
+    {"item": "minecraft:stick", "count": 1},
+    {"item": "modularcontents:example_item", "count": 2}
+  ],
+  "outputs": [
+    {
+      "item": "minecraft:iron_sword",
+      "count": 1,
+      "chance": 100,
+      "nbt": "{ench:[{id:16s,lvl:5s}],display:{Name:\"Легендарный Меч\"}}"
+    },
+    {
+      "item": "minecraft:gold_nugget",
+      "count": 3,
+      "chance": 50,
+      "minDrops": 1
+    }
+  ],
+  "category": "Weapons"
+}

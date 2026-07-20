@@ -1,0 +1,11 @@
+{
+  "id": "example_basic_block",
+  "name": "Обычный Блок",
+  "hardness": 1.5,
+  "material": "stone",
+  "texture_top": "modularcontents:blocks/example_block_top",
+  "texture_bottom": "modularcontents:blocks/example_block_bottom",
+  "texture_front": "modularcontents:blocks/example_block_side",
+  "texture_side": "modularcontents:blocks/example_block_side",
+  "creative_tab": "example_tab"
+}

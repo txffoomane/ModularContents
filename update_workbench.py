@@ -1,10 +1,9 @@
-package modularcontents.custom.pack;
+import re
 
-public class WorkbenchConfig {
-    public String id;
-    public String name;
-    public String material;
-    public float hardness;
+with open('src/main/java/modularcontents/custom/pack/WorkbenchConfig.java', 'r') as f:
+    content = f.read()
+
+new_content = content.replace('public float hardness;', '''public float hardness;
 
     @com.google.gson.annotations.SerializedName("texture")
     public String texture;
@@ -20,5 +19,7 @@ public class WorkbenchConfig {
 
     @com.google.gson.annotations.SerializedName("texture_side")
     public String textureSide;
+''')
 
-}
+with open('src/main/java/modularcontents/custom/pack/WorkbenchConfig.java', 'w') as f:
+    f.write(new_content)

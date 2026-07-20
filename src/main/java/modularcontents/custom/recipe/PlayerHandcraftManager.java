@@ -32,9 +32,32 @@ public class PlayerHandcraftManager {
         return activeCrafts.get(playerId);
     }
 
+    private static boolean canFitInInventory(EntityPlayerMP player, ListWorkbenchRecipe recipe) {
+        if (player.inventory.getFirstEmptyStack() != -1) {
+            return true;
+        }
+        for (IngredientStack out : recipe.outputs) {
+            if (out == null || out.chance < 100.0f) continue;
+            ItemStack res = out.toItemStack();
+            if (res.isEmpty()) continue;
+            boolean fits = false;
+            for (ItemStack invStack : player.inventory.mainInventory) {
+                if (!invStack.isEmpty() && invStack.isItemEqual(res) && ItemStack.areItemStackTagsEqual(invStack, res)) {
+                    if (invStack.getCount() + res.getCount() <= invStack.getMaxStackSize()) {
+                        fits = true;
+                        break;
+                    }
+                }
+            }
+            if (!fits) return false;
+        }
+        return true;
+    }
+
     public static void startCrafting(EntityPlayerMP player, String recipeId, int amount) {
         ListWorkbenchRecipe recipe = ListWorkbenchRecipeManager.getRecipe(recipeId);
         if (recipe != null && amount > 0) {
+            if (!canFitInInventory(player, recipe)) return;
             CraftingState state = new CraftingState();
             state.recipeId = recipeId;
             state.amount = amount;
@@ -100,6 +123,11 @@ public class PlayerHandcraftManager {
     }
 
     private static void finishOneCraft(EntityPlayerMP player, CraftingState state, ListWorkbenchRecipe recipe) {
+        if (!canFitInInventory(player, recipe)) {
+            cancelCrafting(player);
+            return;
+        }
+
         boolean hasIngredients = true;
         for (IngredientStack ing : recipe.inputs) {
             if (countItemInInventory(player, ing) < ing.count) {

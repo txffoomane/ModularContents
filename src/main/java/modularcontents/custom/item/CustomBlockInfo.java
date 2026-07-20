@@ -35,6 +35,18 @@ public class CustomBlockInfo {
     @SerializedName("texture")
     public String texture = "";
 
+    @SerializedName("texture_top")
+    public String textureTop = "";
+
+    @SerializedName("texture_bottom")
+    public String textureBottom = "";
+
+    @SerializedName("texture_front")
+    public String textureFront = "";
+
+    @SerializedName("texture_side")
+    public String textureSide = "";
+
     @SerializedName("has_slab")
     public boolean hasSlab = false;
 
@@ -46,4 +58,7 @@ public class CustomBlockInfo {
 
     @SerializedName("has_wall")
     public boolean hasWall = false;
+
+    @SerializedName("rotation_type")
+    public String rotationType = "none"; // none, horizontal, log
 }

@@ -1,0 +1,6 @@
+{
+  "id": "example_item",
+  "name": "Базовый Предмет",
+  "max_stack_size": 64,
+  "creative_tab": "example_tab"
+}

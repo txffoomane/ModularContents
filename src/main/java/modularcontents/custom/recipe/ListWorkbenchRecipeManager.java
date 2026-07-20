@@ -84,24 +84,34 @@ public class ListWorkbenchRecipeManager {
 
     private static void loadRecipe(Reader reader, String packName, String fileName) {
         ListWorkbenchRecipe recipe = GSON.fromJson(reader, ListWorkbenchRecipe.class);
-        if (recipe != null && recipe.id != null) {
-            if (fileName != null && fileName.contains("/")) {
-                String topFolder = fileName.substring(0, fileName.indexOf('/'));
+        if (recipe != null) {
+            if (recipe.id == null && fileName != null) {
+                String baseName = fileName;
+                if (baseName.endsWith(".json")) {
+                    baseName = baseName.substring(0, baseName.length() - 5);
+                }
+                recipe.id = packName + "_" + baseName.replace('/', '_').replace('\\', '_');
+            }
 
-                if (topFolder.equalsIgnoreCase("handcraft")) {
-                    // Если лежит в папке handcraft, автоматически делаем тип handcraft
-                    if (recipe.type == null || recipe.type.equals("workbench")) {
-                        recipe.type = "handcraft";
-                    }
-                } else {
-                    // Иначе считаем название папки ID верстака
-                    if (recipe.workbench == null || recipe.workbench.equals("custom_workbench")) {
-                        recipe.workbench = topFolder;
+            if (recipe.id != null) {
+                if (fileName != null && fileName.contains("/")) {
+                    String topFolder = fileName.substring(0, fileName.indexOf('/'));
+
+                    if (topFolder.equalsIgnoreCase("handcraft")) {
+                        // Если лежит в папке handcraft, автоматически делаем тип handcraft
+                        if (recipe.type == null || recipe.type.equals("workbench")) {
+                            recipe.type = "handcraft";
+                        }
+                    } else {
+                        // Иначе считаем название папки ID верстака
+                        if (recipe.workbench == null || recipe.workbench.equals("custom_workbench")) {
+                            recipe.workbench = topFolder;
+                        }
                     }
                 }
+                RECIPES.put(recipe.id, recipe);
+                LOGGER.info("Loaded recipe '" + recipe.id + "' (Type: " + recipe.type + (recipe.type.equals("handcraft") ? "" : ", Workbench: " + recipe.workbench) + ") from pack '" + packName + "'");
             }
-            RECIPES.put(recipe.id, recipe);
-            LOGGER.info("Loaded recipe '" + recipe.id + "' (Type: " + recipe.type + (recipe.type.equals("handcraft") ? "" : ", Workbench: " + recipe.workbench) + ") from pack '" + packName + "'");
         }
     }
 
@@ -128,25 +138,25 @@ public class ListWorkbenchRecipeManager {
     }
 
     private static final String[] EXAMPLE_PACK_RECIPES = {
-            "example_aa_battery.json",
-            "example_arrows.json",
-            "example_nbt_sword.json",
-            "vanilla_torches.json",
-            "vanilla_book.json",
-            "vanilla_fire_charge.json",
-            "vanilla_cake.json",
-            "vanilla_tnt.json",
-            "vanilla_sticky_piston.json",
-            "vanilla_explorer_map.json",
-            "vanilla_beacon.json",
-            "vanilla_enchanting_table.json",
-            "vanilla_defense_kit.json",
-            "vanilla_ore_processing.json",
-            "metal_workbench/metal_planks.json",
+            "handcraft/example_aa_battery.json",
+            "handcraft/example_arrows.json",
+            "handcraft/example_nbt_sword.json",
+            "handcraft/vanilla_torches.json",
+            "handcraft/vanilla_book.json",
+            "handcraft/vanilla_fire_charge.json",
+            "handcraft/vanilla_cake.json",
+            "handcraft/vanilla_tnt.json",
+            "handcraft/vanilla_sticky_piston.json",
+            "handcraft/vanilla_explorer_map.json",
+            "handcraft/vanilla_beacon.json",
+            "handcraft/vanilla_enchanting_table.json",
+            "handcraft/vanilla_defense_kit.json",
+            "handcraft/vanilla_ore_processing.json",
+            "metal_workbench/planks.json",
             "gun_workbench/ak47_example.json",
-            "handcraft/handcraft_planks.json",
-            "handcraft/handcraft_sticks.json",
-            "handcraft/handcraft_torches.json"
+            "handcraft/planks.json",
+            "handcraft/sticks.json",
+            "handcraft/torches.json"
     };
 
     private static final String[] EXAMPLE_PACK_LOOT_TABLES = {
@@ -169,11 +179,31 @@ public class ListWorkbenchRecipeManager {
     private static final String[] EXAMPLE_PACK_BLOCKS = {
             "test_block.json",
             "test_slab.json",
-            "test_stair.json"
+            "test_stair.json",
+            "directional_block.json",
+            "log_block.json"
     };
 
     private static final String[] EXAMPLE_PACK_TEXTURES = {
             "test_block.png"
+    };
+
+    private static final String[] EXAMPLE_PACK_ITEMS = {
+            "duct_tape.json",
+            "screwdriver.json",
+            "signal_flare.json"
+    };
+
+    private static final String[] EXAMPLE_PACK_FOOD = {
+            "military_ration.json"
+    };
+
+    private static final String[] EXAMPLE_PACK_WEAPONS = {
+            "machete.json"
+    };
+
+    private static final String[] EXAMPLE_PACK_NPCS = {
+            "bandit.json"
     };
 
     private static void createExamplePack(File rootPacksDir) {
@@ -191,8 +221,16 @@ public class ListWorkbenchRecipeManager {
                     "/assets/modularcontents/example_pack/workbenches/", EXAMPLE_PACK_WORKBENCHES);
             int textures = copyExampleResources(new File(new File(examplePackDir, "textures"), "blocks"),
                     "/assets/modularcontents/example_pack/textures/blocks/", EXAMPLE_PACK_TEXTURES);
+            int items = copyExampleResources(new File(examplePackDir, "items"),
+                    "/assets/modularcontents/example_pack/items/", EXAMPLE_PACK_ITEMS);
+            int food = copyExampleResources(new File(examplePackDir, "food"),
+                    "/assets/modularcontents/example_pack/food/", EXAMPLE_PACK_FOOD);
+            int weapons = copyExampleResources(new File(examplePackDir, "weapons"),
+                    "/assets/modularcontents/example_pack/weapons/", EXAMPLE_PACK_WEAPONS);
+            int npcs = copyExampleResources(new File(examplePackDir, "npcs"),
+                    "/assets/modularcontents/example_pack/npcs/", EXAMPLE_PACK_NPCS);
 
-            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables, " + equipment + " equipment presets, " + blocks + " blocks, " + workbenches + " workbenches, " + textures + " textures) in ModularContents/example_pack");
+            LOGGER.info("Created example content pack (" + recipes + " recipes, " + lootTables + " loot tables, " + equipment + " equipment presets, " + blocks + " blocks, " + workbenches + " workbenches, " + textures + " textures, " + items + " items, " + food + " foods, " + weapons + " weapons, " + npcs + " npcs) in ModularContents/example_pack");
         } catch (Exception e) {
             LOGGER.error("Failed to create example content pack", e);
         }

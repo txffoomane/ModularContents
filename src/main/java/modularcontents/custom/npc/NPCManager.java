@@ -18,37 +18,32 @@ public class NPCManager {
 
     public static void loadNPCs(File gameDir) {
         NPCS.clear();
-        File npcDir = new File(gameDir, "ModularContents/example_pack/npcs");
-        if (!npcDir.exists()) {
-            npcDir.mkdirs();
-            // Generate example NPC
-            CustomNPCInfo example = new CustomNPCInfo();
-            example.id = "example_bandit";
-            example.name = "Bandit";
-            example.maxHealth = 30.0;
-            example.shootRange = 24.0;
-            example.equipment.put("mainhand", "minecraft:bow");
-            example.equipment.put("head", "minecraft:leather_helmet");
-            example.dropChances.put("mainhand", 0.05f);
-
-            try {
-                java.nio.file.Files.write(new File(npcDir, "example_bandit.json").toPath(), GSON.toJson(example).getBytes());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        File rootDir = new File(gameDir, "ModularContents");
+        if (!rootDir.exists()) {
+            return;
         }
 
-        File[] files = npcDir.listFiles((dir, name) -> name.endsWith(".json"));
-        if (files != null) {
-            for (File file : files) {
-                try (FileReader reader = new FileReader(file)) {
-                    CustomNPCInfo info = GSON.fromJson(reader, CustomNPCInfo.class);
-                    if (info != null && info.id != null && !info.id.isEmpty()) {
-                        NPCS.put(info.id, info);
+        File[] packs = rootDir.listFiles(File::isDirectory);
+        if (packs == null) return;
+
+        for (File packDir : packs) {
+            if (packDir.getName().equals("generated")) continue;
+
+            File npcDir = new File(packDir, "npcs");
+            if (!npcDir.exists() || !npcDir.isDirectory()) continue;
+
+            File[] files = npcDir.listFiles((dir, name) -> name.endsWith(".json"));
+            if (files != null) {
+                for (File file : files) {
+                    try (FileReader reader = new FileReader(file)) {
+                        CustomNPCInfo info = GSON.fromJson(reader, CustomNPCInfo.class);
+                        if (info != null && info.id != null && !info.id.isEmpty()) {
+                            NPCS.put(info.id, info);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("[ModularContents] Failed to load NPC JSON: " + file.getName());
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    System.out.println("[ModularContents] Failed to load NPC JSON: " + file.getName());
-                    e.printStackTrace();
                 }
             }
         }

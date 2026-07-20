@@ -1,27 +1,14 @@
 package modularcontents.custom.inventory;
 
-<<<<<<< HEAD
-import modularcontents.custom.recipe.ListWorkbenchRecipeManager;
-import net.minecraft.entity.player.EntityPlayer;
-=======
 import modularcontents.ModularcontentsMod;
 import modularcontents.custom.network.PacketHandcraftSync;
 import modularcontents.custom.recipe.PlayerHandcraftManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-<<<<<<< HEAD
-
-public class ContainerHandcraft extends Container {
-    private final InventoryPlayer playerInventory;
-
-    public ContainerHandcraft(InventoryPlayer playerInventory) {
-        this.playerInventory = playerInventory;
-=======
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -44,23 +31,15 @@ public class ContainerHandcraft extends Container {
     public ContainerHandcraft(InventoryPlayer playerInventory) {
         this.playerInventory = playerInventory;
         this.player = playerInventory.player;
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
 
         // Player Inventory
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-<<<<<<< HEAD
-                this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 142 + i * 18));
-=======
                 this.addSlotToContainer(new Slot(playerInventory, j + i * 9 + 9, 88 + j * 18, 158 + i * 18));
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
             }
         }
         // Player Hotbar
         for (int k = 0; k < 9; ++k) {
-<<<<<<< HEAD
-            this.addSlotToContainer(new Slot(playerInventory, k, 8 + k * 18, 200));
-=======
             this.addSlotToContainer(new Slot(playerInventory, k, 88 + k * 18, 216));
         }
     }
@@ -86,7 +65,7 @@ public class ContainerHandcraft extends Container {
         if (player instanceof EntityPlayerMP) {
             EntityPlayerMP emp = (EntityPlayerMP) player;
             PlayerHandcraftManager.CraftingState state = PlayerHandcraftManager.getState(emp.getUniqueID());
-            
+
             boolean changed = false;
             if (state != null) {
                 if (!activeRecipeId.equals(state.recipeId) || craftAmount != state.amount || progress != state.progress || totalTime != state.totalTime) {
@@ -108,11 +87,10 @@ public class ContainerHandcraft extends Container {
 
             if (changed) {
                 ModularcontentsMod.PACKET_HANDLER.sendTo(
-                    new PacketHandcraftSync(activeRecipeId, craftAmount, progress, totalTime), 
+                    new PacketHandcraftSync(activeRecipeId, craftAmount, progress, totalTime),
                     emp
                 );
             }
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
         }
     }
 
@@ -123,10 +101,6 @@ public class ContainerHandcraft extends Container {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-<<<<<<< HEAD
-        return ItemStack.EMPTY; // Add shift-click logic later if needed
-=======
-        return ItemStack.EMPTY; 
->>>>>>> 842bc66 (Feat: Custom Workbenches, Handcrafting, and Folder-based Recipe separation)
+        return ItemStack.EMPTY;
     }
 }

@@ -279,7 +279,13 @@ public class ModularcontentsMod implements IGuiHandler {
             } else if ("fence".equalsIgnoreCase(info.blockType)) {
                 block = new modularcontents.custom.block.BlockCustomFence(info);
             } else {
-                block = new BlockCustom(info);
+                if ("horizontal".equalsIgnoreCase(info.rotationType)) {
+                    block = new modularcontents.custom.block.BlockCustomHorizontal(info);
+                } else if ("log".equalsIgnoreCase(info.rotationType)) {
+                    block = new modularcontents.custom.block.BlockCustomLog(info);
+                } else {
+                    block = new BlockCustom(info);
+                }
             }
             if (info.creativeTab != null && !info.creativeTab.isEmpty()) {
                 if (CustomTabManager.CUSTOM_TABS.containsKey(info.creativeTab)) {

@@ -144,6 +144,7 @@ public class GuiListWorkbench extends GuiContainer {
 
     private int selectedRecipeIndex = -1;
     private int craftAmount = 1;
+    private long openTime;
 
     public GuiListWorkbench(InventoryPlayer playerInv, TileEntityListWorkbench te) {
         super(new ContainerListWorkbench(playerInv, te));
@@ -241,6 +242,7 @@ public class GuiListWorkbench extends GuiContainer {
     @Override
     public void initGui() {
         super.initGui();
+        openTime = System.currentTimeMillis();
         Keyboard.enableRepeatEvents(true);
 
         btnCatPrev = new FlatButton(4, guiLeft + 8, guiTop + 5, 12, 12, "<");
@@ -464,6 +466,24 @@ public class GuiListWorkbench extends GuiContainer {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
+
+        float animProgress = Math.min(1.0f, (System.currentTimeMillis() - openTime) / 200.0f);
+        // ease-out cubic
+        animProgress = 1.0f - (float) Math.pow(1.0f - animProgress, 3);
+
+        GlStateManager.pushMatrix();
+        if (animProgress < 1.0f) {
+            float scale = 0.8f + 0.2f * animProgress;
+            float cx = this.width / 2.0f;
+            float cy = this.height / 2.0f;
+            GlStateManager.translate(cx, cy, 0);
+            GlStateManager.scale(scale, scale, 1.0f);
+            GlStateManager.translate(-cx, -cy, 0);
+
+            GlStateManager.enableBlend();
+            GlStateManager.color(1.0f, 1.0f, 1.0f, animProgress);
+        }
+
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.renderHoveredToolTip(mouseX, mouseY);
 
@@ -495,6 +515,8 @@ public class GuiListWorkbench extends GuiContainer {
                 break;
             }
         }
+
+        GlStateManager.popMatrix();
     }
 
     private void drawSlotBox(int x, int y) {

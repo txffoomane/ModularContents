@@ -1,4 +1,4 @@
-Starting a Gradle Daemon, 11 busy and 114 incompatible Daemons could not be reused, use --status for details
+Starting a Gradle Daemon, 11 busy and 111 incompatible Daemons could not be reused, use --status for details
 
 FAILURE: Build failed with an exception.
 
