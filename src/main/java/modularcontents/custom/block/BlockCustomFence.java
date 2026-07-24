@@ -8,7 +8,7 @@ import net.minecraft.block.material.Material;
 public class BlockCustomFence extends BlockFence {
     public BlockCustomFence(CustomBlockInfo info) {
         super(getMaterialFromName(info.material), getMaterialFromName(info.material).getMaterialMapColor());
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName(info.id);
         this.setHardness(info.hardness);
         this.setResistance(info.resistance);

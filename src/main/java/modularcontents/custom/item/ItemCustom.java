@@ -31,7 +31,7 @@ public class ItemCustom extends Item {
 
     public ItemCustom(CustomItemInfo info) {
         this.info = info;
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName("custom." + info.id);
         this.setMaxStackSize(info.maxStackSize);
         if (info.maxDamage > 0) {

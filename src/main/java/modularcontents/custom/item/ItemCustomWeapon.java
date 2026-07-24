@@ -28,7 +28,7 @@ public class ItemCustomWeapon extends ItemSword {
         super(EnumHelper.addToolMaterial("weapon_" + info.id, 0, info.maxDamage, 1.0F, 0.0F, 0));
         this.info = info;
 
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName("custom." + info.id);
         this.setMaxStackSize(info.maxStackSize);
 

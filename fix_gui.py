@@ -1,65 +1,42 @@
+import os
 import re
 
-filepath = "D:/CONTRACT/modularcontents/src/main/java/modularcontents/custom/client/gui/GuiHandcraft.java"
-with open(filepath, "r", encoding="utf-8") as f:
-    content = f.read()
+def fix_file(filepath):
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
 
-replacement = """    private int getMaxAffordable(ListWorkbenchRecipe recipe) {
-        int max = 64;
-
-        Map<String, Integer> requiredTotals = new HashMap<>();
-        for (IngredientStack ing : recipe.inputs) {
-            if (ing.count <= 0) continue;
-            ItemStack stack = ing.toItemStack();
-            if (stack.isEmpty()) continue;
-
-            String key = stack.getItem().getRegistryName().toString() + ":" + ing.meta;
-            requiredTotals.put(key, requiredTotals.getOrDefault(key, 0) + ing.count);
+    # Add isGroupCraftable
+    if "private boolean isGroupCraftable" not in content:
+        group_func = """
+    private boolean isGroupCraftable(RecipeGroup group) {
+        for (ListWorkbenchRecipe r : group.recipes) {
+            if (isCraftable(r)) return true;
         }
+        return false;
+    }
+"""
+        content = content.replace("private boolean isCraftable(ListWorkbenchRecipe recipe) {", group_func.strip() + "\n\n    private boolean isCraftable(ListWorkbenchRecipe recipe) {")
 
-        for (IngredientStack ing : recipe.inputs) {
-            if (ing.count <= 0) continue;
-            ItemStack stack = ing.toItemStack();
-            if (stack.isEmpty()) continue;
+    # Fix sorting
+    content = content.replace("boolean ca = isCraftable(a.getCurrentRecipe());", "boolean ca = isGroupCraftable(a);")
+    content = content.replace("boolean cb = isCraftable(b.getCurrentRecipe());", "boolean cb = isGroupCraftable(b);")
 
-            String key = stack.getItem().getRegistryName().toString() + ":" + ing.meta;
-            int totalNeeded = requiredTotals.get(key);
+    # Fix drawing list
+    content = re.sub(r'RecipeGroup group = currentGroups\.get\(index\);\s*ListWorkbenchRecipe recipe = group\.getCurrentRecipe\(\);\s*boolean craftable = isCraftable\(recipe\);', 
+                     r'RecipeGroup group = currentGroups.get(index);\n            ListWorkbenchRecipe recipe = group.getCurrentRecipe();\n            boolean craftable = isGroupCraftable(group);', content)
 
-            int have = countItemInInventory(ing);
-            int affordable = have / totalNeeded;
-            if (affordable < max) max = affordable;
-        }
+    # Fix drawing grid (sometimes slightly different indentation)
+    # Using a simpler replace
+    if "boolean craftable = isCraftable(recipe);" in content:
+        content = content.replace("boolean craftable = isCraftable(recipe);", "boolean craftable = isGroupCraftable(group);")
+        # We need to ensure 'group' exists where this is called. It should, because the agent wrote it: 
+        # RecipeGroup group = currentGroups.get(index);
+        # ListWorkbenchRecipe recipe = group.getCurrentRecipe();
+        # Let's verify by regex if the above simple replace caused issues where group is not defined.
 
-        if (max > 0) {
-            boolean canFit = false;
-            if (this.mc.player.inventory.getFirstEmptyStack() != -1) {
-                canFit = true;
-            } else {
-                for (IngredientStack out : recipe.outputs) {
-                    if (out.chance < 100.0f) continue;
-                    ItemStack res = out.toItemStack();
-                    if (!res.isEmpty()) {
-                        for (ItemStack invStack : this.mc.player.inventory.mainInventory) {
-                            if (!invStack.isEmpty() && invStack.isItemEqual(res) && ItemStack.areItemStackTagsEqual(invStack, res)) {
-                                if (invStack.getCount() + res.getCount() <= invStack.getMaxStackSize()) {
-                                    canFit = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (!canFit) {
-                max = 0;
-            }
-        }
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(content)
 
-        return max;
-    }"""
+fix_file("D:/CONTRACT/modularcontents/src/main/java/modularcontents/custom/gui/GuiListWorkbench.java")
+fix_file("D:/CONTRACT/modularcontents/src/main/java/modularcontents/custom/client/gui/GuiHandcraft.java")
 
-pattern = r'    private int getMaxAffordable\(ListWorkbenchRecipe recipe\)\s*\{.*?(?=    private int countItemInInventory)'
-content = re.sub(pattern, replacement + "\n\n", content, flags=re.DOTALL)
-
-with open(filepath, "w", encoding="utf-8") as f:
-    f.write(content)

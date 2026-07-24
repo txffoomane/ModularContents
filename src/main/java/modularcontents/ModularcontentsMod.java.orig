@@ -278,8 +278,6 @@ public class ModularcontentsMod implements IGuiHandler {
                 block = half;
             } else if ("fence".equalsIgnoreCase(info.blockType)) {
                 block = new modularcontents.custom.block.BlockCustomFence(info);
-            } else if ("wall".equalsIgnoreCase(info.blockType)) {
-                block = new modularcontents.custom.block.BlockCustomWall(info);
             } else {
                 if ("horizontal".equalsIgnoreCase(info.rotationType)) {
                     block = new modularcontents.custom.block.BlockCustomHorizontal(info);
@@ -371,6 +369,29 @@ public class ModularcontentsMod implements IGuiHandler {
             event.getRegistry().register(item);
         }
 
+        // Register Weapons
+        for (CustomWeaponInfo info : CustomContentManager.CUSTOM_WEAPONS.values()) {
+            Item item = new ItemCustomWeapon(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Tools
+        for (CustomToolInfo info : CustomContentManager.CUSTOM_TOOLS.values()) {
+            Item item = new ItemCustomTool(info);
+            event.getRegistry().register(item);
+        }
+
+        // Register Armor
+        for (CustomArmorInfo info : CustomContentManager.CUSTOM_ARMORS.values()) {
+            EntityEquipmentSlot slot = EntityEquipmentSlot.HEAD;
+            if (info.equipmentSlot.equalsIgnoreCase("chest")) slot = EntityEquipmentSlot.CHEST;
+            else if (info.equipmentSlot.equalsIgnoreCase("legs")) slot = EntityEquipmentSlot.LEGS;
+            else if (info.equipmentSlot.equalsIgnoreCase("feet")) slot = EntityEquipmentSlot.FEET;
+            Item item = new ItemCustomArmor(info, slot);
+            event.getRegistry().register(item);
+        }
+
+        // Register ItemBlocks for the Blocks we added
         for (CustomBlockInfo info : CustomContentManager.CUSTOM_BLOCKS.values()) {
             Block block = ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation("modularcontents", info.id));
             if (block != null) {
@@ -451,18 +472,6 @@ public class ModularcontentsMod implements IGuiHandler {
             if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
         }
         for (CustomBlockInfo info : CustomContentManager.CUSTOM_BLOCKS.values()) {
-            Item item = Item.getByNameOrId("modularcontents:" + info.id);
-            if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
-        }
-        for (CustomWeaponInfo info : CustomContentManager.CUSTOM_WEAPONS.values()) {
-            Item item = Item.getByNameOrId("modularcontents:" + info.id);
-            if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
-        }
-        for (CustomToolInfo info : CustomContentManager.CUSTOM_TOOLS.values()) {
-            Item item = Item.getByNameOrId("modularcontents:" + info.id);
-            if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
-        }
-        for (CustomArmorInfo info : CustomContentManager.CUSTOM_ARMORS.values()) {
             Item item = Item.getByNameOrId("modularcontents:" + info.id);
             if (item != null) ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
         }

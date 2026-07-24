@@ -1,3 +1,0 @@
-patching file src/main/java/modularcontents/ModularcontentsMod.java
-patch: **** malformed patch at line 50:                      block.setCreativeTab(CustomTabManager.CUSTOM_TABS.get(info.creativeTab));
-

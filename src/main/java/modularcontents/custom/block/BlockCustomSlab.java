@@ -87,6 +87,21 @@ public class BlockCustomSlab extends BlockSlab {
     }
 
     @Override
+    public void onBlockAdded(World worldIn, net.minecraft.util.math.BlockPos pos, IBlockState state) {
+        super.onBlockAdded(worldIn, pos, state);
+        if (this.isDouble) {
+            String parentId = info.id;
+            if (parentId.endsWith("_slab")) {
+                parentId = parentId.substring(0, parentId.length() - 5);
+            }
+            net.minecraft.block.Block parent = net.minecraftforge.fml.common.registry.ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation("modularcontents", parentId));
+            if (parent != null && parent != net.minecraft.init.Blocks.AIR) {
+                worldIn.setBlockState(pos, parent.getDefaultState(), 3);
+            }
+        }
+    }
+
+    @Override
     public String getUnlocalizedName(int meta) {
         return super.getUnlocalizedName();
     }

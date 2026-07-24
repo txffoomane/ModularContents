@@ -111,7 +111,18 @@ public class GuiListWorkbench extends GuiContainer {
 
     private List<String> categories = new ArrayList<>();
     private int currentCategoryIndex = 0;
-    private List<ListWorkbenchRecipe> currentRecipes = new ArrayList<>();
+
+    public static class RecipeGroup {
+        public List<ListWorkbenchRecipe> recipes = new ArrayList<>();
+        public int currentVariation = 0;
+
+        public ListWorkbenchRecipe getCurrentRecipe() {
+            if (recipes.isEmpty()) return null;
+            return recipes.get(currentVariation);
+        }
+    }
+
+    private List<RecipeGroup> currentGroups = new ArrayList<>();
 
     private static final Set<String> FAVORITES = new HashSet<>();
     private static boolean favoritesLoaded = false;
@@ -138,11 +149,13 @@ public class GuiListWorkbench extends GuiContainer {
     private GuiButton btnMinus;
     private GuiButton btnPlus;
     private GuiButton btnViewMode;
+    private GuiButton btnVarPrev;
+    private GuiButton btnVarNext;
     private GuiTextField searchField;
 
     private boolean gridMode = false;
 
-    private int selectedRecipeIndex = -1;
+    private int selectedGroupIndex = -1;
     private int craftAmount = 1;
     private long openTime;
 
@@ -199,18 +212,20 @@ public class GuiListWorkbench extends GuiContainer {
     private void updateCategoryRecipes() {
         String currentCat = categories.get(currentCategoryIndex);
 
+        List<ListWorkbenchRecipe> recipesToGroup;
+
         if (currentCat.equals("Favorites")) {
-            currentRecipes = ListWorkbenchRecipeManager.getAllRecipes().stream().filter(r -> r.type.equalsIgnoreCase("workbench") || r.type.equalsIgnoreCase("both"))
+            recipesToGroup = ListWorkbenchRecipeManager.getAllRecipes().stream().filter(r -> r.type.equalsIgnoreCase("workbench") || r.type.equalsIgnoreCase("both"))
                     .filter(r -> r.workbench != null && r.workbench.equalsIgnoreCase(te.getWorkbenchId()))
                     .filter(r -> FAVORITES.contains(r.id))
                     .collect(Collectors.toList());
         } else {
-            currentRecipes = ListWorkbenchRecipeManager.getRecipesInCategory(currentCat, "workbench", te.getWorkbenchId());
+            recipesToGroup = ListWorkbenchRecipeManager.getRecipesInCategory(currentCat, "workbench", te.getWorkbenchId());
         }
 
         if (searchField != null && !searchField.getText().trim().isEmpty()) {
             String search = searchField.getText().trim().toLowerCase();
-            currentRecipes = currentRecipes.stream()
+            recipesToGroup = recipesToGroup.stream()
                     .filter(r -> {
                         ItemStack res = r.getPrimaryResult();
                         return !res.isEmpty() && res.getDisplayName().toLowerCase().contains(search);
@@ -218,13 +233,21 @@ public class GuiListWorkbench extends GuiContainer {
                     .collect(Collectors.toList());
         }
 
-        currentRecipes = currentRecipes.stream()
+        Map<String, RecipeGroup> groups = new HashMap<>();
+        for (ListWorkbenchRecipe r : recipesToGroup) {
+            ItemStack res = r.getPrimaryResult();
+            String key = res.isEmpty() ? r.id : (res.getItem().getRegistryName().toString() + ":" + res.getMetadata());
+            RecipeGroup group = groups.computeIfAbsent(key, k -> new RecipeGroup());
+            group.recipes.add(r);
+        }
+
+        currentGroups = groups.values().stream()
                 .sorted((a, b) -> {
-                    boolean ca = isCraftable(a);
-                    boolean cb = isCraftable(b);
+                    boolean ca = isGroupCraftable(a);
+                    boolean cb = isGroupCraftable(b);
                     if (ca != cb) return ca ? -1 : 1;
-                    ItemStack ra = a.getPrimaryResult();
-                    ItemStack rb = b.getPrimaryResult();
+                    ItemStack ra = a.getCurrentRecipe().getPrimaryResult();
+                    ItemStack rb = b.getCurrentRecipe().getPrimaryResult();
                     String na = ra.isEmpty() ? "" : ra.getDisplayName();
                     String nb = rb.isEmpty() ? "" : rb.getDisplayName();
                     return na.compareToIgnoreCase(nb);
@@ -235,7 +258,7 @@ public class GuiListWorkbench extends GuiContainer {
         scrollTarget = 0.0f;
         reqScrollPos = 0.0f;
         reqScrollTarget = 0.0f;
-        selectedRecipeIndex = -1;
+        selectedGroupIndex = -1;
         craftAmount = 1;
     }
 
@@ -257,6 +280,9 @@ public class GuiListWorkbench extends GuiContainer {
 
         btnViewMode = new FlatButton(10, guiLeft + 109, guiTop + 21, 16, 12, gridMode ? "G" : "L");
 
+        btnVarPrev = new FlatButton(11, guiLeft + 288, guiTop + 8, 12, 12, "<");
+        btnVarNext = new FlatButton(12, guiLeft + 300, guiTop + 8, 12, 12, ">");
+
         this.buttonList.add(btnCraft);
         this.buttonList.add(btnCatPrev);
         this.buttonList.add(btnCatNext);
@@ -264,6 +290,8 @@ public class GuiListWorkbench extends GuiContainer {
         this.buttonList.add(btnMinus);
         this.buttonList.add(btnPlus);
         this.buttonList.add(btnViewMode);
+        this.buttonList.add(btnVarPrev);
+        this.buttonList.add(btnVarNext);
 
         searchField = new GuiTextField(7, this.fontRenderer, guiLeft + 10, guiTop + 23, 92, 10);
         searchField.setMaxStringLength(30);
@@ -278,8 +306,8 @@ public class GuiListWorkbench extends GuiContainer {
     }
 
     private ListWorkbenchRecipe getRecipeToShow() {
-        if (selectedRecipeIndex >= 0 && selectedRecipeIndex < currentRecipes.size()) {
-            return currentRecipes.get(selectedRecipeIndex);
+        if (selectedGroupIndex >= 0 && selectedGroupIndex < currentGroups.size()) {
+            return currentGroups.get(selectedGroupIndex).getCurrentRecipe();
         }
         if (te.isCrafting()) {
             String activeId = te.getActiveRecipeId();
@@ -292,8 +320,8 @@ public class GuiListWorkbench extends GuiContainer {
 
     private int getMaxScroll() {
         int contentHeight = gridMode
-                ? ((currentRecipes.size() + GRID_COLS - 1) / GRID_COLS) * GRID_CELL
-                : currentRecipes.size() * RECIPE_ROW_HEIGHT;
+                ? ((currentGroups.size() + GRID_COLS - 1) / GRID_COLS) * GRID_CELL
+                : currentGroups.size() * RECIPE_ROW_HEIGHT;
         return Math.max(0, contentHeight - LIST_HEIGHT);
     }
 
@@ -359,6 +387,20 @@ public class GuiListWorkbench extends GuiContainer {
             btnPlus.visible = true;
             btnMinus.enabled = craftAmount > 1;
 
+            if (selectedGroupIndex >= 0 && selectedGroupIndex < currentGroups.size()) {
+                RecipeGroup group = currentGroups.get(selectedGroupIndex);
+                if (group.recipes.size() > 1) {
+                    btnVarPrev.visible = true;
+                    btnVarNext.visible = true;
+                } else {
+                    btnVarPrev.visible = false;
+                    btnVarNext.visible = false;
+                }
+            } else {
+                btnVarPrev.visible = false;
+                btnVarNext.visible = false;
+            }
+
             int maxAffordable = getMaxAffordable(recipeToShow);
             btnPlus.enabled = craftAmount < maxAffordable && craftAmount < 64;
 
@@ -374,7 +416,16 @@ public class GuiListWorkbench extends GuiContainer {
             btnFavorite.visible = false;
             btnMinus.visible = false;
             btnPlus.visible = false;
+            btnVarPrev.visible = false;
+            btnVarNext.visible = false;
         }
+    }
+
+    private boolean isGroupCraftable(RecipeGroup group) {
+        for (ListWorkbenchRecipe r : group.recipes) {
+            if (isCraftable(r)) return true;
+        }
+        return false;
     }
 
     private boolean isCraftable(ListWorkbenchRecipe recipe) {
@@ -449,6 +500,20 @@ public class GuiListWorkbench extends GuiContainer {
             btnViewMode.displayString = gridMode ? "G" : "L";
             scrollTarget = Math.min(scrollTarget, getMaxScroll());
             scrollPos = scrollTarget;
+        } else if (button.id == 11 && selectedGroupIndex >= 0) {
+            RecipeGroup group = currentGroups.get(selectedGroupIndex);
+            if (group.recipes.size() > 1) {
+                group.currentVariation--;
+                if (group.currentVariation < 0) group.currentVariation = group.recipes.size() - 1;
+                craftAmount = 1;
+            }
+        } else if (button.id == 12 && selectedGroupIndex >= 0) {
+            RecipeGroup group = currentGroups.get(selectedGroupIndex);
+            if (group.recipes.size() > 1) {
+                group.currentVariation++;
+                if (group.currentVariation >= group.recipes.size()) group.currentVariation = 0;
+                craftAmount = 1;
+            }
         }
     }
 
@@ -490,7 +555,7 @@ public class GuiListWorkbench extends GuiContainer {
         if (gridMode) {
             int hoverIndex = getGridIndexAt(mouseX, mouseY);
             if (hoverIndex >= 0) {
-                ItemStack hoverResult = currentRecipes.get(hoverIndex).getPrimaryResult();
+                ItemStack hoverResult = currentGroups.get(hoverIndex).getCurrentRecipe().getPrimaryResult();
                 if (!hoverResult.isEmpty()) {
                     this.renderToolTip(hoverResult, mouseX, mouseY);
                 }
@@ -528,24 +593,25 @@ public class GuiListWorkbench extends GuiContainer {
 
     private void drawListRecipes(int listTop, int mouseX, int mouseY) {
         int firstRow = Math.max(0, (int) (scrollPos / RECIPE_ROW_HEIGHT));
-        int lastRow = Math.min(currentRecipes.size() - 1, (int) ((scrollPos + LIST_HEIGHT) / RECIPE_ROW_HEIGHT));
+        int lastRow = Math.min(currentGroups.size() - 1, (int) ((scrollPos + LIST_HEIGHT) / RECIPE_ROW_HEIGHT));
 
         for (int index = firstRow; index <= lastRow; index++) {
-            ListWorkbenchRecipe recipe = currentRecipes.get(index);
+            RecipeGroup group = currentGroups.get(index);
+            ListWorkbenchRecipe recipe = group.getCurrentRecipe();
             int rowY = listTop + index * RECIPE_ROW_HEIGHT;
             float visualY = rowY - scrollPos;
 
             boolean isHovered = mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121
                     && mouseY >= visualY && mouseY <= visualY + 19
                     && mouseY >= listTop && mouseY <= listTop + LIST_HEIGHT;
-            boolean craftable = isCraftable(recipe);
-            int bgBorder = (index == selectedRecipeIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE_DIM : COL_BORDER_DARK));
-            int bgFill = (index == selectedRecipeIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
+            boolean craftable = isGroupCraftable(group);
+            int bgBorder = (index == selectedGroupIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE_DIM : COL_BORDER_DARK));
+            int bgFill = (index == selectedGroupIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
 
             drawRect(guiLeft + 6, rowY, guiLeft + 122, rowY + 19, bgBorder);
             drawRect(guiLeft + 7, rowY + 1, guiLeft + 121, rowY + 18, bgFill);
 
-            if (craftable && index != selectedRecipeIndex) {
+            if (craftable && index != selectedGroupIndex) {
                 drawRect(guiLeft + 7, rowY + 1, guiLeft + 8, rowY + 18, COL_CRAFTABLE);
             }
 
@@ -559,7 +625,7 @@ public class GuiListWorkbench extends GuiContainer {
                 GlStateManager.popMatrix();
 
                 String name = this.fontRenderer.trimStringToWidth(result.getDisplayName(), 92);
-                int tColor = (index == selectedRecipeIndex) ? COL_ACCENT : (craftable ? COL_CRAFTABLE : COL_TEXT);
+                int tColor = (index == selectedGroupIndex) ? COL_ACCENT : (craftable ? COL_CRAFTABLE : COL_TEXT);
                 this.fontRenderer.drawString(name, guiLeft + 26, rowY + 6, tColor);
             }
         }
@@ -571,10 +637,11 @@ public class GuiListWorkbench extends GuiContainer {
         int firstRow = Math.max(0, (int) (scrollPos / GRID_CELL));
         int lastRow = (int) ((scrollPos + LIST_HEIGHT) / GRID_CELL);
         int firstIndex = firstRow * GRID_COLS;
-        int lastIndex = Math.min(currentRecipes.size() - 1, (lastRow + 1) * GRID_COLS - 1);
+        int lastIndex = Math.min(currentGroups.size() - 1, (lastRow + 1) * GRID_COLS - 1);
 
         for (int index = firstIndex; index <= lastIndex; index++) {
-            ListWorkbenchRecipe recipe = currentRecipes.get(index);
+            RecipeGroup group = currentGroups.get(index);
+            ListWorkbenchRecipe recipe = group.getCurrentRecipe();
             ItemStack result = recipe.getPrimaryResult();
             if (result.isEmpty()) continue;
 
@@ -587,9 +654,9 @@ public class GuiListWorkbench extends GuiContainer {
             boolean isHovered = mouseX >= cx && mouseX < cx + 20
                     && mouseY >= visualY && mouseY < visualY + 20
                     && mouseY >= listTop && mouseY <= listTop + LIST_HEIGHT;
-            boolean craftable = isCraftable(recipe);
-            int bgBorder = (index == selectedRecipeIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE : COL_BORDER_DARK));
-            int bgFill = (index == selectedRecipeIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
+            boolean craftable = isGroupCraftable(group);
+            int bgBorder = (index == selectedGroupIndex) ? COL_ACCENT : (isHovered ? COL_BORDER : (craftable ? COL_CRAFTABLE : COL_BORDER_DARK));
+            int bgFill = (index == selectedGroupIndex) ? 0xFF2A2A11 : (isHovered ? 0xFF222222 : (craftable ? 0xFF16221A : 0xFF181818));
 
             drawRect(cx, cy, cx + 20, cy + 20, bgBorder);
             drawRect(cx + 1, cy + 1, cx + 19, cy + 19, bgFill);
@@ -616,7 +683,7 @@ public class GuiListWorkbench extends GuiContainer {
         if (mouseY >= cellTop + 20) return -1;
 
         int index = row * GRID_COLS + col;
-        if (index < 0 || index >= currentRecipes.size()) return -1;
+        if (index < 0 || index >= currentGroups.size()) return -1;
         return index;
     }
 
@@ -701,7 +768,7 @@ public class GuiListWorkbench extends GuiContainer {
         int thumbY = listTop + (int) (scrollFrac * (LIST_HEIGHT - THUMB_HEIGHT));
         drawRect(scrollX, thumbY, scrollX + 3, thumbY + THUMB_HEIGHT, isScrolling ? COL_ACCENT : 0xFF555555);
 
-        if (currentRecipes.isEmpty()) {
+        if (currentGroups.isEmpty()) {
             String empty = "No recipes";
             int w = this.fontRenderer.getStringWidth(empty);
             this.fontRenderer.drawString(empty, guiLeft + LEFT_X0 + (LEFT_X1 - LEFT_X0 - w) / 2, listTop + 46, 0xFF555555);
@@ -977,17 +1044,17 @@ public class GuiListWorkbench extends GuiContainer {
             if (gridMode) {
                 int index = getGridIndexAt(mouseX, mouseY);
                 if (index >= 0) {
-                    selectedRecipeIndex = index;
+                    selectedGroupIndex = index;
                     craftAmount = 1;
                     reqScrollPos = 0.0f;
                     reqScrollTarget = 0.0f;
                 }
             } else if (mouseX >= guiLeft + 7 && mouseX <= guiLeft + 121 && mouseY >= listTop && mouseY < listTop + LIST_HEIGHT) {
                 int index = (int) ((mouseY - listTop + scrollPos) / RECIPE_ROW_HEIGHT);
-                if (index >= 0 && index < currentRecipes.size()) {
+                if (index >= 0 && index < currentGroups.size()) {
                     float rowY = listTop + index * RECIPE_ROW_HEIGHT - scrollPos;
                     if (mouseY >= rowY && mouseY <= rowY + 19) {
-                        selectedRecipeIndex = index;
+                        selectedGroupIndex = index;
                         craftAmount = 1;
                         reqScrollPos = 0.0f;
                         reqScrollTarget = 0.0f;

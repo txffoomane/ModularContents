@@ -32,9 +32,15 @@ public class ModularResourcePack implements IResourcePack {
         String path = location.getResourcePath();
 
         // Try to load any requested resource directly from content packs first
-        InputStream packStream = findPackResource(path);
+        InputStream packStream = findPackResource(location);
         if (packStream != null) {
             return packStream;
+        }
+
+        // Texture intercept check (fallback for when requested by string internally)
+        if (path.startsWith("textures/") && path.endsWith(".png")) {
+            InputStream texStream = findTexture(path);
+            if (texStream != null) return texStream;
         }
 
         // 0. Serve generated lang files
@@ -48,18 +54,21 @@ public class ModularResourcePack implements IResourcePack {
         // 1. Intercept Model generation (So users don't have to write .json models for items)
         if (path.startsWith("models/item/") && path.endsWith(".json")) {
             String itemId = path.substring("models/item/".length(), path.length() - 5);
-            if (CustomContentManager.CUSTOM_ITEMS.containsKey(itemId) || CustomContentManager.CUSTOM_FOODS.containsKey(itemId) || itemId.equals("custom_workbench") || modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null) {
+            if (CustomContentManager.CUSTOM_ITEMS.containsKey(itemId) || CustomContentManager.CUSTOM_FOODS.containsKey(itemId) || CustomContentManager.CUSTOM_WEAPONS.containsKey(itemId) || CustomContentManager.CUSTOM_TOOLS.containsKey(itemId) || CustomContentManager.CUSTOM_ARMORS.containsKey(itemId) || CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId) || itemId.equals("custom_workbench") || modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null) {
                 if (!itemId.equals("custom_workbench")) {
                     String generatedJson = "{\n  \"parent\": \"item/generated\",\n  \"textures\": {\n    \"layer0\": \"modularcontents:items/" + itemId + "\"\n  }\n}";
-                    if (modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null) {
+                    if (modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null || CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId)) {
                          generatedJson = "{\n  \"parent\": \"modularcontents:block/" + itemId + "\"\n}";
+                         if (CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId)) {
+                             modularcontents.custom.item.CustomBlockInfo bInfo = CustomContentManager.CUSTOM_BLOCKS.get(itemId);
+                             if ("fence".equalsIgnoreCase(bInfo.blockType) || "wall".equalsIgnoreCase(bInfo.blockType)) {
+                                 generatedJson = "{\n  \"parent\": \"modularcontents:block/" + itemId + "_inventory\"\n}";
+                             }
+                         }
                     }
                     System.out.println("[ModularContents] Generated model for item: " + itemId);
                     return new ByteArrayInputStream(generatedJson.getBytes(StandardCharsets.UTF_8));
                 }
-            } else if (CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId)) {
-                String generatedJson = "{\n  \"parent\": \"modularcontents:block/" + itemId + "\"\n}";
-                return new ByteArrayInputStream(generatedJson.getBytes(StandardCharsets.UTF_8));
             }
         }
 
@@ -78,6 +87,22 @@ public class ModularResourcePack implements IResourcePack {
                     generatedJson = "{\n  \"variants\": {\n    \"facing=east,half=bottom,shape=straight\":  { \"model\": \"modularcontents:" + blockId + "\" },\n    \"facing=west,half=bottom,shape=straight\":  { \"model\": \"modularcontents:" + blockId + "\", \"y\": 180 },\n    \"facing=south,half=bottom,shape=straight\": { \"model\": \"modularcontents:" + blockId + "\", \"y\": 90 },\n    \"facing=north,half=bottom,shape=straight\": { \"model\": \"modularcontents:" + blockId + "\", \"y\": 270 },\n    \"facing=east,half=bottom,shape=outer_right\":  { \"model\": \"modularcontents:" + blockId + "_outer\" },\n    \"facing=west,half=bottom,shape=outer_right\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 180 },\n    \"facing=south,half=bottom,shape=outer_right\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 90 },\n    \"facing=north,half=bottom,shape=outer_right\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 270 },\n    \"facing=east,half=bottom,shape=outer_left\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 270 },\n    \"facing=west,half=bottom,shape=outer_left\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 90 },\n    \"facing=south,half=bottom,shape=outer_left\": { \"model\": \"modularcontents:" + blockId + "_outer\" },\n    \"facing=north,half=bottom,shape=outer_left\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"y\": 180 },\n    \"facing=east,half=bottom,shape=inner_right\":  { \"model\": \"modularcontents:" + blockId + "_inner\" },\n    \"facing=west,half=bottom,shape=inner_right\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 180 },\n    \"facing=south,half=bottom,shape=inner_right\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 90 },\n    \"facing=north,half=bottom,shape=inner_right\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 270 },\n    \"facing=east,half=bottom,shape=inner_left\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 270 },\n    \"facing=west,half=bottom,shape=inner_left\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 90 },\n    \"facing=south,half=bottom,shape=inner_left\": { \"model\": \"modularcontents:" + blockId + "_inner\" },\n    \"facing=north,half=bottom,shape=inner_left\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"y\": 180 },\n    \"facing=east,half=top,shape=straight\":  { \"model\": \"modularcontents:" + blockId + "\", \"x\": 180 },\n    \"facing=west,half=top,shape=straight\":  { \"model\": \"modularcontents:" + blockId + "\", \"x\": 180, \"y\": 180 },\n    \"facing=south,half=top,shape=straight\": { \"model\": \"modularcontents:" + blockId + "\", \"x\": 180, \"y\": 90 },\n    \"facing=north,half=top,shape=straight\": { \"model\": \"modularcontents:" + blockId + "\", \"x\": 180, \"y\": 270 },\n    \"facing=east,half=top,shape=outer_right\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 90 },\n    \"facing=west,half=top,shape=outer_right\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 270 },\n    \"facing=south,half=top,shape=outer_right\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 180 },\n    \"facing=north,half=top,shape=outer_right\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180 },\n    \"facing=east,half=top,shape=outer_left\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180 },\n    \"facing=west,half=top,shape=outer_left\":  { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 180 },\n    \"facing=south,half=top,shape=outer_left\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 90 },\n    \"facing=north,half=top,shape=outer_left\": { \"model\": \"modularcontents:" + blockId + "_outer\", \"x\": 180, \"y\": 270 },\n    \"facing=east,half=top,shape=inner_right\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 90 },\n    \"facing=west,half=top,shape=inner_right\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 270 },\n    \"facing=south,half=top,shape=inner_right\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 180 },\n    \"facing=north,half=top,shape=inner_right\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180 },\n    \"facing=east,half=top,shape=inner_left\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180 },\n    \"facing=west,half=top,shape=inner_left\":  { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 180 },\n    \"facing=south,half=top,shape=inner_left\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 90 },\n    \"facing=north,half=top,shape=inner_left\": { \"model\": \"modularcontents:" + blockId + "_inner\", \"x\": 180, \"y\": 270 }\n  }\n}";
                 } else if (type.equals("slab")) {
                     generatedJson = "{\n  \"variants\": {\n    \"half=bottom,variant=default\": { \"model\": \"modularcontents:" + blockId + "\" },\n    \"half=top,variant=default\": { \"model\": \"modularcontents:" + blockId + "_top\" }\n  }\n}";
+                } else if (type.equals("fence")) {
+                    generatedJson = "{\n  \"multipart\": [\n" +
+                        "    { \"apply\": { \"model\": \"modularcontents:" + blockId + "_post\" } },\n" +
+                        "    { \"when\": { \"north\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"east\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 90, \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"south\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 180, \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"west\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 270, \"uvlock\": true } }\n" +
+                        "  ]\n}";
+                } else if (type.equals("wall")) {
+                    generatedJson = "{\n  \"multipart\": [\n" +
+                        "    { \"when\": { \"up\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_post\" } },\n" +
+                        "    { \"when\": { \"north\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"east\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 90, \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"south\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 180, \"uvlock\": true } },\n" +
+                        "    { \"when\": { \"west\": \"true\" }, \"apply\": { \"model\": \"modularcontents:" + blockId + "_side\", \"y\": 270, \"uvlock\": true } }\n" +
+                        "  ]\n}";
                 } else {
                     if ("horizontal".equalsIgnoreCase(info.rotationType)) {
                         generatedJson = "{\n  \"variants\": {\n    \"facing=north\": { \"model\": \"modularcontents:" + blockId + "\" },\n    \"facing=south\": { \"model\": \"modularcontents:" + blockId + "\", \"y\": 180 },\n    \"facing=west\":  { \"model\": \"modularcontents:" + blockId + "\", \"y\": 270 },\n    \"facing=east\":  { \"model\": \"modularcontents:" + blockId + "\", \"y\": 90 }\n  }\n}";
@@ -98,7 +123,7 @@ public class ModularResourcePack implements IResourcePack {
         if (path.startsWith("models/block/") && path.endsWith(".json")) {
             String blockId = path.substring("models/block/".length(), path.length() - 5);
             boolean isDoubleSlabModel = blockId.endsWith("_double");
-            String baseId = blockId.replace("_top", "").replace("_inner", "").replace("_outer", "").replace("_double", "");
+            String baseId = blockId.replace("_top", "").replace("_inner", "").replace("_outer", "").replace("_double", "").replace("_post", "").replace("_side", "").replace("_inventory", "");
             if (CustomContentManager.CUSTOM_BLOCKS.containsKey(baseId)) {
                 modularcontents.custom.item.CustomBlockInfo info = CustomContentManager.CUSTOM_BLOCKS.get(baseId);
                 String tex = info.texture != null && !info.texture.isEmpty() ? info.texture : baseId;
@@ -134,6 +159,18 @@ public class ModularResourcePack implements IResourcePack {
                     generatedJson = "{\n  \"parent\": \"block/outer_stairs\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
                 } else if (blockId.endsWith("_top")) {
                     generatedJson = "{\n  \"parent\": \"block/upper_slab\",\n  \"textures\": {\n    \"bottom\": \"" + tBottom + "\",\n    \"top\": \"" + tTop + "\",\n    \"side\": \"" + tSide + "\"\n  }\n}";
+                } else if (blockId.endsWith("_post")) {
+                    String parent = "block/fence_post";
+                    if ("wall".equalsIgnoreCase(info.blockType)) parent = "block/wall_post";
+                    generatedJson = "{\n  \"parent\": \"" + parent + "\",\n  \"textures\": {\n    \"texture\": \"" + texPath + "\",\n    \"wall\": \"" + texPath + "\"\n  }\n}";
+                } else if (blockId.endsWith("_side")) {
+                    String parent = "block/fence_side";
+                    if ("wall".equalsIgnoreCase(info.blockType)) parent = "block/wall_side";
+                    generatedJson = "{\n  \"parent\": \"" + parent + "\",\n  \"textures\": {\n    \"texture\": \"" + texPath + "\",\n    \"wall\": \"" + texPath + "\"\n  }\n}";
+                } else if (blockId.endsWith("_inventory")) {
+                    String parent = "block/fence_inventory";
+                    if ("wall".equalsIgnoreCase(info.blockType)) parent = "block/wall_inventory";
+                    generatedJson = "{\n  \"parent\": \"" + parent + "\",\n  \"textures\": {\n    \"texture\": \"" + texPath + "\",\n    \"wall\": \"" + texPath + "\"\n  }\n}";
                 } else {
                     String type = info.blockType != null ? info.blockType.toLowerCase() : "block";
                     if (type.equals("stair")) {
@@ -205,7 +242,7 @@ public class ModularResourcePack implements IResourcePack {
         String path = location.getResourcePath();
 
         // 0. Serve any file directly from pack if it exists
-        if (packResourceExists(path)) {
+        if (packResourceExists(location)) {
             return true;
         }
 
@@ -220,7 +257,7 @@ public class ModularResourcePack implements IResourcePack {
         // Model intercept check
         if (path.startsWith("models/item/") && path.endsWith(".json")) {
             String itemId = path.substring("models/item/".length(), path.length() - 5);
-            if (CustomContentManager.CUSTOM_ITEMS.containsKey(itemId) || CustomContentManager.CUSTOM_FOODS.containsKey(itemId) || CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId) || itemId.equals("custom_workbench") || modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null) {
+            if (CustomContentManager.CUSTOM_ITEMS.containsKey(itemId) || CustomContentManager.CUSTOM_FOODS.containsKey(itemId) || CustomContentManager.CUSTOM_WEAPONS.containsKey(itemId) || CustomContentManager.CUSTOM_TOOLS.containsKey(itemId) || CustomContentManager.CUSTOM_ARMORS.containsKey(itemId) || CustomContentManager.CUSTOM_BLOCKS.containsKey(itemId) || itemId.equals("custom_workbench") || modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(itemId) != null) {
                 if (!itemId.equals("custom_workbench")) {
                     return true;
                 }
@@ -237,7 +274,7 @@ public class ModularResourcePack implements IResourcePack {
         if (path.startsWith("models/block/") && path.endsWith(".json")) {
             String blockId = path.substring("models/block/".length(), path.length() - 5);
             boolean isDoubleSlabModel = blockId.endsWith("_double");
-            String baseId = blockId.replace("_top", "").replace("_inner", "").replace("_outer", "").replace("_double", "");
+            String baseId = blockId.replace("_top", "").replace("_inner", "").replace("_outer", "").replace("_double", "").replace("_post", "").replace("_side", "").replace("_inventory", "");
             if (CustomContentManager.CUSTOM_BLOCKS.containsKey(baseId) || modularcontents.custom.pack.CustomWorkbenchManager.getWorkbench(baseId) != null) return true;
         }
 
@@ -249,54 +286,59 @@ public class ModularResourcePack implements IResourcePack {
         return false;
     }
 
-    private InputStream findPackResource(String path) throws IOException {
+    private InputStream findPackResource(ResourceLocation location) throws IOException {
+        String fullPath = "assets/" + location.getResourceDomain() + "/" + location.getResourcePath();
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
         if (packDirs != null) {
             for (File packDir : packDirs) {
-                File resFile = new File(packDir, path);
+                File resFile = new File(packDir, fullPath);
                 if (resFile.exists() && resFile.isFile()) {
                     return new FileInputStream(resFile);
                 }
             }
         }
-        return PackZipUtils.findZipResource(rootPacksDir, path);
+        return PackZipUtils.findZipResource(rootPacksDir, fullPath);
     }
 
-    private boolean packResourceExists(String path) {
+    private boolean packResourceExists(ResourceLocation location) {
+        String fullPath = "assets/" + location.getResourceDomain() + "/" + location.getResourcePath();
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
         if (packDirs != null) {
             for (File packDir : packDirs) {
-                if (new File(packDir, path).exists() && new File(packDir, path).isFile()) {
+                if (new File(packDir, fullPath).exists() && new File(packDir, fullPath).isFile()) {
                     return true;
                 }
             }
         }
-        return PackZipUtils.zipResourceExists(rootPacksDir, path);
+        return PackZipUtils.zipResourceExists(rootPacksDir, fullPath);
     }
 
     private InputStream findTexture(String path) throws IOException {
+        // path already contains textures/, e.g., textures/items/fire_axe.png
+        String fullPath = "assets/modularcontents/" + path;
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
         if (packDirs != null) {
             for (File packDir : packDirs) {
-                File textureFile = new File(packDir, path);
+                File textureFile = new File(packDir, fullPath);
                 if (textureFile.exists()) {
                     return new FileInputStream(textureFile);
                 }
             }
         }
-        return PackZipUtils.findZipResource(rootPacksDir, path);
+        return PackZipUtils.findZipResource(rootPacksDir, fullPath);
     }
 
     private boolean textureExists(String path) {
+        String fullPath = "assets/modularcontents/" + path;
         File[] packDirs = rootPacksDir.listFiles(File::isDirectory);
         if (packDirs != null) {
             for (File packDir : packDirs) {
-                if (new File(packDir, path).exists()) {
+                if (new File(packDir, fullPath).exists()) {
                     return true;
                 }
             }
         }
-        return PackZipUtils.zipResourceExists(rootPacksDir, path);
+        return PackZipUtils.zipResourceExists(rootPacksDir, fullPath);
     }
 
     @Override

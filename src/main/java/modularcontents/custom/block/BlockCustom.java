@@ -22,7 +22,7 @@ public class BlockCustom extends Block {
         super(getMaterialFromName(info.material));
         this.info = info;
 
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName(info.id);
 
         this.setHardness(info.hardness);

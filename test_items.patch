@@ -1,0 +1,15 @@
+--- src/main/java/modularcontents/ModularcontentsMod.java
++++ src/main/java/modularcontents/ModularcontentsMod.java
+@@ -107,4 +107,5 @@
+         for (modularcontents.custom.item.CustomItemInfo info : CustomContentManager.CUSTOM_ITEMS.values()) {
++            System.out.println("Registering item: " + info.id);
+             Item item = new modularcontents.custom.item.ItemCustom(info);
+             event.getRegistry().register(item);
+         }
+ 
+         // Register Weapons
+         for (CustomWeaponInfo info : CustomContentManager.CUSTOM_WEAPONS.values()) {
++            System.out.println("Registering weapon: " + info.id);
+             Item item = new ItemCustomWeapon(info);
+             event.getRegistry().register(item);
+         }

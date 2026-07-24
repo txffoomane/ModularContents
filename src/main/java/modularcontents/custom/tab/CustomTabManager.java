@@ -9,6 +9,9 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.NonNullList;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.io.File;
 import java.io.FileReader;
@@ -69,6 +72,20 @@ public class CustomTabManager {
             @Override
             public String getTranslatedTabLabel() {
                 return info.displayName != null ? info.displayName : info.id;
+            }
+
+            @Override
+            @SideOnly(Side.CLIENT)
+            public void displayAllRelevantItems(NonNullList<ItemStack> list) {
+                super.displayAllRelevantItems(list);
+                if (info.items != null) {
+                    for (String itemId : info.items) {
+                        Item item = Item.REGISTRY.getObject(new ResourceLocation(itemId));
+                        if (item != null && item.getCreativeTab() != this) {
+                            item.getSubItems(CreativeTabs.SEARCH, list);
+                        }
+                    }
+                }
             }
         };
 

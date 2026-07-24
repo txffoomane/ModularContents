@@ -25,7 +25,7 @@ public class ItemCustomArmor extends ItemArmor {
         super(createMaterial(info), 0, slot);
         this.info = info;
 
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName("custom." + info.id);
         this.setMaxStackSize(info.maxStackSize);
 

@@ -21,7 +21,7 @@ public class ItemCustomFood extends ItemFood {
         super(info.healAmount, info.saturation, info.isMeat);
         this.info = info;
 
-        this.setRegistryName(info.id);
+        this.setRegistryName("modularcontents", info.id);
         this.setUnlocalizedName(info.id);
         this.setMaxStackSize(info.maxStackSize);
 
