@@ -64,6 +64,7 @@ public class GuiContentCreator extends GuiContainer {
     private static final int BTN_APPLY = 2;
     private static final int BTN_MAP = 3;
     private static final int BTN_NBT = 4;
+    private static final int BTN_WHOLE = 5;
 
     private static final int M = 5;
     private static final int G = 4;
@@ -115,7 +116,9 @@ public class GuiContentCreator extends GuiContainer {
 
     private static class RecipeSlotSettings {
         float chance = 100.0f;
+        int cost = -1;
         boolean useNbt = false;
+        boolean consumeWhole = false;
         String nbt = "";
         boolean touched = false;
     }
@@ -137,6 +140,7 @@ public class GuiContentCreator extends GuiContainer {
     private GuiTextField txtItemMax;
     private GuiTextField txtItemChance;
     private GuiTextField txtRecipeChance;
+    private GuiTextField txtRecipeCost;
     private GuiTextField txtRecipeNbt;
     private GuiTextArea jsonEditor;
 
@@ -144,6 +148,7 @@ public class GuiContentCreator extends GuiContainer {
     private GuiButton btnApply;
     private GuiButton btnMap;
     private GuiButton btnNbtToggle;
+    private GuiButton btnWholeToggle;
 
     private int selectedSlot = -1;
     private String selectedPack = "";
@@ -196,6 +201,7 @@ public class GuiContentCreator extends GuiContainer {
         this.txtItemMax = plainField(0, 0, 34, 3, "1");
         this.txtItemChance = plainField(0, 0, 44, 5, "0.5");
         this.txtRecipeChance = plainField(0, 0, 44, 5, "100");
+        this.txtRecipeCost = plainField(0, 0, 44, 5, "");
         this.txtRecipeNbt = plainField(0, 0, 120, 32000, "");
         this.txtThemeHex = plainField(0, 0, 70, 8, "FFFFAA00");
         loadThemeSelection();
@@ -236,11 +242,13 @@ public class GuiContentCreator extends GuiContainer {
         this.btnSave = new GuiLaptop.FlatButton(BTN_SAVE, textX + halfW + 4, btnY, textW - halfW - 4, 16, tr("btn.save"));
         this.btnMap = new GuiLaptop.FlatButton(BTN_MAP, centerX + 8, topY + 40, 110, 18, tr("open_map"));
         this.btnNbtToggle = new GuiLaptop.FlatButton(BTN_NBT, 0, 0, 60, 14, tr("nbt.off"));
+        this.btnWholeToggle = new GuiLaptop.FlatButton(BTN_WHOLE, 0, 0, 96, 14, tr("whole.off"));
 
         this.buttonList.add(btnApply);
         this.buttonList.add(btnSave);
         this.buttonList.add(btnMap);
         this.buttonList.add(btnNbtToggle);
+        this.buttonList.add(btnWholeToggle);
     }
 
     private GuiTextField plainField(int x, int y, int w, int maxLength, String text) {
@@ -524,6 +532,7 @@ public class GuiContentCreator extends GuiContainer {
         if (container.activeTab == TAB_THEME) list.add(txtThemeHex);
         if (txtItemMin.getVisible()) list.addAll(Arrays.asList(txtItemMin, txtItemMax, txtItemChance));
         if (txtRecipeChance.getVisible()) list.add(txtRecipeChance);
+        if (txtRecipeCost.getVisible()) list.add(txtRecipeCost);
         if (txtRecipeNbt.getVisible()) list.add(txtRecipeNbt);
         return list;
     }
@@ -603,13 +612,19 @@ public class GuiContentCreator extends GuiContainer {
         int recpY = slotsY + 106;
         txtRecipeChance.x = panelX;
         txtRecipeChance.y = recpY + 10;
+        txtRecipeCost.x = panelX;
+        txtRecipeCost.y = recpY + 10;
         txtRecipeNbt.x = panelX + 54;
         txtRecipeNbt.y = recpY + 10;
         txtRecipeNbt.width = Math.max(60, centerW - 70 - SCROLL_W);
         btnNbtToggle.x = panelX;
         btnNbtToggle.y = recpY + 26 - Math.round(fieldScroll);
+        btnWholeToggle.x = panelX + 66;
+        btnWholeToggle.y = btnNbtToggle.y;
         boolean recpSel = container.activeTab == TAB_RECIPES && selectedSlot != -1 && getSelectedStack() != null;
-        btnNbtToggle.visible = recpSel && btnNbtToggle.y >= contentTop() && btnNbtToggle.y + 14 <= contentBottom();
+        boolean rowVisible = btnNbtToggle.y >= contentTop() && btnNbtToggle.y + 14 <= contentBottom();
+        btnNbtToggle.visible = recpSel && rowVisible;
+        btnWholeToggle.visible = recpSel && rowVisible && isToolInputSelected();
     }
 
     private void updateSidePanel() {
@@ -635,8 +650,10 @@ public class GuiContentCreator extends GuiContainer {
         boolean recpOutSel = recpSel && selectedSlot < 9;
 
         txtRecipeChance.setVisible(recpOutSel);
+        txtRecipeCost.setVisible(recpSel && !recpOutSel);
         txtRecipeNbt.setVisible(recpSel);
         btnNbtToggle.visible = recpSel;
+        btnWholeToggle.visible = recpSel && isToolInputSelected();
 
         if (recpSel) {
             RecipeSlotSettings set = recipeSettings[selectedSlot];
@@ -647,9 +664,16 @@ public class GuiContentCreator extends GuiContainer {
                 set.touched = true;
             }
             txtRecipeChance.setText(formatChance(set.chance));
+            txtRecipeCost.setText(set.cost < 0 ? "" : String.valueOf(set.cost));
             txtRecipeNbt.setText(set.nbt);
             btnNbtToggle.displayString = set.useNbt ? tr("nbt.on") : tr("nbt.off");
+            btnWholeToggle.displayString = set.consumeWhole ? tr("whole.on") : tr("whole.off");
         }
+    }
+
+    private boolean isToolInputSelected() {
+        ItemStack stack = getSelectedStack();
+        return selectedSlot >= 9 && stack != null && stack.isItemStackDamageable();
     }
 
     private String formatChance(float chance) {
@@ -726,6 +750,7 @@ public class GuiContentCreator extends GuiContainer {
         if (txtItemMax.getVisible()) txtItemMax.drawTextBox();
         if (txtItemChance.getVisible()) txtItemChance.drawTextBox();
         if (txtRecipeChance.getVisible()) txtRecipeChance.drawTextBox();
+        if (txtRecipeCost.getVisible()) txtRecipeCost.drawTextBox();
         if (txtRecipeNbt.getVisible()) txtRecipeNbt.drawTextBox();
 
         GlStateManager.popMatrix();
@@ -894,6 +919,10 @@ public class GuiContentCreator extends GuiContainer {
             fontRenderer.drawString(fontRenderer.trimStringToWidth(header, centerW - 16), centerX + 8, panelY - 12, GuiTheme.ACCENT);
             if (selectedSlot < 9) {
                 fontRenderer.drawString(tr("label.chance_pct"), centerX + 8, panelY, GuiTheme.TEXT_DIM);
+            } else {
+                fontRenderer.drawString(isToolInputSelected() && !recipeSettings[selectedSlot].consumeWhole
+                                ? tr("label.durability") : tr("label.consume"),
+                        centerX + 8, panelY, GuiTheme.TEXT_DIM);
             }
             fontRenderer.drawString(tr("label.nbt"), centerX + 62, panelY, GuiTheme.TEXT_DIM);
         } else {
@@ -1363,11 +1392,18 @@ public class GuiContentCreator extends GuiContainer {
 
         if (selectedSlot != -1 && container.activeTab == TAB_RECIPES) {
             boolean changed = (txtRecipeChance.getVisible() && txtRecipeChance.textboxKeyTyped(typedChar, keyCode))
+                    || (txtRecipeCost.getVisible() && txtRecipeCost.textboxKeyTyped(typedChar, keyCode))
                     || (txtRecipeNbt.getVisible() && txtRecipeNbt.textboxKeyTyped(typedChar, keyCode));
             if (changed) {
                 RecipeSlotSettings set = recipeSettings[selectedSlot];
                 set.touched = true;
                 try { set.chance = Float.parseFloat(txtRecipeChance.getText()); } catch (Exception ignored) {}
+                String costText = txtRecipeCost.getText().trim();
+                if (costText.isEmpty()) {
+                    set.cost = -1;
+                } else {
+                    try { set.cost = Integer.parseInt(costText); } catch (Exception ignored) {}
+                }
                 set.nbt = txtRecipeNbt.getText();
                 if (!jsonDirty) refreshJsonText();
                 return;
@@ -1410,6 +1446,15 @@ public class GuiContentCreator extends GuiContainer {
                         txtRecipeNbt.setText(set.nbt);
                     }
                     btnNbtToggle.displayString = set.useNbt ? tr("nbt.on") : tr("nbt.off");
+                    if (!jsonDirty) refreshJsonText();
+                }
+                break;
+            case BTN_WHOLE:
+                if (selectedSlot != -1) {
+                    RecipeSlotSettings set = recipeSettings[selectedSlot];
+                    set.consumeWhole = !set.consumeWhole;
+                    set.touched = true;
+                    btnWholeToggle.displayString = set.consumeWhole ? tr("whole.on") : tr("whole.off");
                     if (!jsonDirty) refreshJsonText();
                 }
                 break;
@@ -1504,6 +1549,11 @@ public class GuiContentCreator extends GuiContainer {
             obj.addProperty("count", stack.getCount());
             if (stack.getMetadata() > 0) obj.addProperty("meta", stack.getMetadata());
             if (isOutput) obj.addProperty("chance", set.chance);
+            if (!isOutput) {
+                boolean wear = stack.isItemStackDamageable() && !set.consumeWhole;
+                if (stack.isItemStackDamageable() && set.consumeWhole) obj.addProperty("consume_whole", true);
+                if (set.cost >= 0) obj.addProperty(wear ? "durability" : "consume", set.cost);
+            }
             if (set.useNbt && !set.nbt.trim().isEmpty()) obj.addProperty("nbt", set.nbt.trim());
             array.add(obj);
         }

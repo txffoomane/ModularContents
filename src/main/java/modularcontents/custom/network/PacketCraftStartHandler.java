@@ -49,6 +49,12 @@ public class PacketCraftStartHandler implements IMessageHandler<PacketCraftStart
         return ingredient.matches(stack);
     }
 
+    private int neededCount(IngredientStack ingredient, int amount) {
+        ItemStack required = ingredient.toItemStack();
+        if (ingredient.usesDurability(required)) return ingredient.count;
+        return ingredient.count * amount;
+    }
+
     private boolean hasIngredients(EntityPlayerMP player, ListWorkbenchRecipe recipe, int amount) {
         // Create a copy of the player's inventory sizes to simulate extraction
         int[] simulatedInventory = new int[player.inventory.mainInventory.size()];
@@ -57,7 +63,7 @@ public class PacketCraftStartHandler implements IMessageHandler<PacketCraftStart
         }
 
         for (IngredientStack ingredient : recipe.inputs) {
-            int needed = ingredient.count * amount;
+            int needed = neededCount(ingredient, amount);
             for (int i = 0; i < player.inventory.mainInventory.size(); i++) {
                 if (needed <= 0) break;
                 ItemStack stack = player.inventory.mainInventory.get(i);
@@ -74,7 +80,7 @@ public class PacketCraftStartHandler implements IMessageHandler<PacketCraftStart
 
     private void consumeAndBufferIngredients(EntityPlayerMP player, ListWorkbenchRecipe recipe, TileEntityListWorkbench workbench, int amount) {
         for (IngredientStack ingredient : recipe.inputs) {
-            int needed = ingredient.count * amount;
+            int needed = neededCount(ingredient, amount);
             for (int i = 0; i < player.inventory.mainInventory.size(); i++) {
                 if (needed <= 0) break;
                 ItemStack stack = player.inventory.mainInventory.get(i);

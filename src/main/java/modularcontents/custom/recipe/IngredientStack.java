@@ -1,5 +1,7 @@
 package modularcontents.custom.recipe;
 
+import com.google.gson.annotations.SerializedName;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
@@ -13,10 +15,35 @@ public class IngredientStack {
     public int count = 1;
     public int meta = 0;
     public float chance = 100.0f;
+    public int consume = -1;
+    public int durability = 1;
+    @SerializedName("consume_whole") public boolean consumeWhole = false;
     public String nbt;
 
     private transient NBTTagCompound parsedNbt;
     private transient boolean nbtParsed;
+
+    public int consumeCount() {
+        if (consume < 0) return count;
+        return Math.max(0, Math.min(consume, count));
+    }
+
+    public int durabilityCost() {
+        return Math.max(0, durability);
+    }
+
+    public boolean usesDurability(ItemStack resolved) {
+        return !consumeWhole && resolved.isItemStackDamageable();
+    }
+
+    public String costLabel(ItemStack resolved) {
+        if (usesDurability(resolved)) {
+            int cost = durabilityCost();
+            return cost > 0 ? " (-" + cost + " dur)" : "";
+        }
+        int spend = consumeCount();
+        return spend < count ? " (-" + spend + ")" : "";
+    }
 
     private NBTTagCompound getParsedNbt() {
         if (!nbtParsed) {
@@ -74,7 +101,8 @@ public class IngredientStack {
         if (required.isEmpty()) return false;
 
         if (required.getItem() != stack.getItem()) return false;
-        if (meta != OreDictionary.WILDCARD_VALUE && required.getMetadata() != stack.getMetadata()) return false;
+        if (meta != OreDictionary.WILDCARD_VALUE && !required.isItemStackDamageable()
+                && required.getMetadata() != stack.getMetadata()) return false;
 
         if (getParsedNbt() != null) {
             if (!NBTUtil.areNBTEquals(required.getTagCompound(), stack.getTagCompound(), true)) return false;

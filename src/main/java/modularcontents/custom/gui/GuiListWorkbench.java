@@ -225,9 +225,7 @@ public class GuiListWorkbench extends GuiContainer {
 
         Map<String, RecipeGroup> groups = new HashMap<>();
         for (ListWorkbenchRecipe r : recipesToGroup) {
-            ItemStack res = r.getPrimaryResult();
-            String key = res.isEmpty() ? r.id : (res.getItem().getRegistryName().toString() + ":" + res.getMetadata());
-            RecipeGroup group = groups.computeIfAbsent(key, k -> new RecipeGroup());
+            RecipeGroup group = groups.computeIfAbsent(r.groupKey(), k -> new RecipeGroup());
             group.recipes.add(r);
         }
 
@@ -444,7 +442,7 @@ public class GuiListWorkbench extends GuiContainer {
             int totalNeeded = requiredTotals.get(key);
 
             int have = countItemInInventory(ing);
-            int affordable = have / totalNeeded;
+            int affordable = ing.usesDurability(stack) ? (have >= totalNeeded ? 64 : 0) : have / totalNeeded;
             if (affordable < max) max = affordable;
         }
         return max;
@@ -885,12 +883,12 @@ public class GuiListWorkbench extends GuiContainer {
                 RenderHelper.disableStandardItemLighting();
                 GlStateManager.popMatrix();
 
-                String ingName = this.fontRenderer.trimStringToWidth(reqStack.getDisplayName(), 110);
+                String ingName = this.fontRenderer.trimStringToWidth(reqStack.getDisplayName() + ing.costLabel(reqStack), 110);
                 this.fontRenderer.drawString(ingName, rightX + 18, rowY + 3, GuiTheme.TEXT);
 
                 int have = countItemInInventory(ing);
                 int need = ing.count;
-                int totalNeed = need * Math.max(1, craftAmount);
+                int totalNeed = ing.usesDurability(reqStack) ? need : need * Math.max(1, craftAmount);
                 int color = have >= totalNeed ? 0xFF55FF55 : 0xFFFF5555;
 
                 String counts = have + " / " + totalNeed;

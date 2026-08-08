@@ -138,7 +138,7 @@ public class PlayerHandcraftManager {
 
         if (hasIngredients) {
             for (IngredientStack ing : recipe.inputs) {
-                consumeItemFromInventory(player, ing, ing.count);
+                consumeIngredient(player, ing);
             }
 
             List<ItemStack> results = recipe.rollResults(player.world.rand);
@@ -172,18 +172,33 @@ public class PlayerHandcraftManager {
         return count;
     }
 
-    private static void consumeItemFromInventory(EntityPlayerMP player, IngredientStack ing, int amount) {
-        int left = amount;
-        for (int i = 0; i < player.inventory.mainInventory.size() && left > 0; i++) {
+    private static void consumeIngredient(EntityPlayerMP player, IngredientStack ing) {
+        int remaining = ing.count;
+        int toSpend = ing.consumeCount();
+
+        for (int i = 0; i < player.inventory.mainInventory.size() && remaining > 0; i++) {
             ItemStack stack = player.inventory.mainInventory.get(i);
-            if (ing.matches(stack)) {
-                int take = Math.min(left, stack.getCount());
+            if (!ing.matches(stack)) continue;
+
+            if (ing.usesDurability(stack)) {
+                stack.setItemDamage(stack.getItemDamage() + ing.durabilityCost());
+                if (stack.getItemDamage() > stack.getMaxDamage()) {
+                    player.inventory.mainInventory.set(i, ItemStack.EMPTY);
+                }
+                remaining--;
+                continue;
+            }
+
+            int covered = Math.min(remaining, stack.getCount());
+            int take = Math.min(covered, toSpend);
+            if (take > 0) {
                 stack.shrink(take);
-                left -= take;
+                toSpend -= take;
                 if (stack.isEmpty()) {
                     player.inventory.mainInventory.set(i, ItemStack.EMPTY);
                 }
             }
+            remaining -= covered;
         }
     }
 }

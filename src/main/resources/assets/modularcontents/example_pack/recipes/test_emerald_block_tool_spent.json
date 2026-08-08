@@ -1,0 +1,21 @@
+{
+  "id": "test_emerald_block_tool_spent",
+  "type": "both",
+  "category": "Test",
+  "craftingTime": 40,
+  "output": {
+    "item": "minecraft:emerald_block",
+    "count": 1
+  },
+  "inputs": [
+    {
+      "item": "minecraft:emerald",
+      "count": 9
+    },
+    {
+      "item": "minecraft:wooden_pickaxe",
+      "count": 1,
+      "consume_whole": true
+    }
+  ]
+}

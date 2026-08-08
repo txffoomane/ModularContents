@@ -226,8 +226,7 @@ public class GuiHandcraft extends GuiContainer {
         currentGroups.clear();
         Map<String, RecipeGroup> groupMap = new HashMap<>();
         for (ListWorkbenchRecipe r : rawRecipes) {
-            ItemStack res = r.getPrimaryResult();
-            String key = res.isEmpty() ? r.id : res.getItem().getRegistryName().toString() + ":" + res.getMetadata();
+            String key = r.groupKey();
             RecipeGroup group = groupMap.get(key);
             if (group == null) {
                 group = new RecipeGroup();
@@ -431,7 +430,7 @@ public class GuiHandcraft extends GuiContainer {
             int totalNeeded = requiredTotals.get(key);
 
             int have = countItemInInventory(ing);
-            int affordable = have / totalNeeded;
+            int affordable = ing.usesDurability(stack) ? (have >= totalNeeded ? 64 : 0) : have / totalNeeded;
             if (affordable < max) max = affordable;
         }
 
@@ -891,12 +890,12 @@ public class GuiHandcraft extends GuiContainer {
                 RenderHelper.disableStandardItemLighting();
                 GlStateManager.popMatrix();
 
-                String ingName = this.fontRenderer.trimStringToWidth(reqStack.getDisplayName(), 110);
+                String ingName = this.fontRenderer.trimStringToWidth(reqStack.getDisplayName() + ing.costLabel(reqStack), 110);
                 this.fontRenderer.drawString(ingName, rightX + 18, rowY + 3, GuiTheme.TEXT);
 
                 int have = countItemInInventory(ing);
                 int need = ing.count;
-                int totalNeed = need * Math.max(1, craftAmount);
+                int totalNeed = ing.usesDurability(reqStack) ? need : need * Math.max(1, craftAmount);
                 int color = have >= totalNeed ? 0xFF55FF55 : 0xFFFF5555;
 
                 String counts = have + " / " + totalNeed;

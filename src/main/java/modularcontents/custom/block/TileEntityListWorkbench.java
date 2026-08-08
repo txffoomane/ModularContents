@@ -108,14 +108,13 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
             if (recipe != null) {
                 for (IngredientStack ingredient : recipe.inputs) {
                     int toRemove = ingredient.count;
+                    int toDestroy = ingredient.consumeCount();
                     for (int i = 0; i < bufferSlots.getSlots(); i++) {
                         ItemStack buffered = bufferSlots.getStackInSlot(i);
                         if (!buffered.isEmpty() && isItemMatching(ingredient, buffered)) {
-                            int taken = Math.min(buffered.getCount(), toRemove);
-
-                            if (buffered.isItemStackDamageable()) {
+                            if (ingredient.usesDurability(buffered)) {
                                 ItemStack tool = bufferSlots.extractItem(i, 1, false);
-                                tool.setItemDamage(tool.getItemDamage() + 1);
+                                tool.setItemDamage(tool.getItemDamage() + ingredient.durabilityCost());
                                 if (tool.getItemDamage() <= tool.getMaxDamage()) {
                                     ItemStack leftoverTool = ItemHandlerHelper.insertItem(moreAfter ? bufferSlots : outputSlots, tool, false);
                                     if (!leftoverTool.isEmpty()) {
@@ -124,8 +123,20 @@ public class TileEntityListWorkbench extends TileEntity implements ITickable {
                                 }
                                 toRemove -= 1;
                             } else {
-                                bufferSlots.extractItem(i, taken, false);
+                                int taken = Math.min(buffered.getCount(), toRemove);
+                                ItemStack pulled = bufferSlots.extractItem(i, taken, false);
                                 toRemove -= taken;
+
+                                int destroyed = Math.min(pulled.getCount(), toDestroy);
+                                toDestroy -= destroyed;
+                                pulled.shrink(destroyed);
+
+                                if (!pulled.isEmpty()) {
+                                    ItemStack leftover = ItemHandlerHelper.insertItem(outputSlots, pulled, false);
+                                    if (!leftover.isEmpty()) {
+                                        InventoryHelper.spawnItemStack(world, pos.getX(), pos.getY() + 1, pos.getZ(), leftover);
+                                    }
+                                }
                             }
 
                             if (toRemove <= 0) break;

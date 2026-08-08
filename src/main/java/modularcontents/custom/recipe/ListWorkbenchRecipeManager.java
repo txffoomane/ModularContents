@@ -157,7 +157,9 @@ public class ListWorkbenchRecipeManager {
             "gun_workbench/ak47_example.json",
             "handcraft/planks.json",
             "handcraft/sticks.json",
-            "handcraft/torches.json"
+            "handcraft/torches.json",
+            "test_emerald_block_tool_wear.json",
+            "test_emerald_block_tool_spent.json"
     };
 
     private static final String[] EXAMPLE_PACK_LOOT_TABLES = {

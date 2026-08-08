@@ -75,6 +75,26 @@ public class ListWorkbenchRecipe {
         return false;
     }
 
+    public String groupKey() {
+        ItemStack result = getPrimaryResult();
+        StringBuilder sb = new StringBuilder();
+        sb.append(result.isEmpty() || result.getItem().getRegistryName() == null
+                ? id : result.getItem().getRegistryName().toString());
+        sb.append('|');
+        if (inputs != null) {
+            for (IngredientStack ing : inputs) {
+                if (ing == null) continue;
+                sb.append(ing.item).append(':').append(ing.meta).append('x').append(ing.count)
+                        .append('/').append(ing.consume)
+                        .append('/').append(ing.durability)
+                        .append('/').append(ing.consumeWhole)
+                        .append('/').append(ing.nbt == null ? "" : ing.nbt)
+                        .append(';');
+            }
+        }
+        return sb.toString();
+    }
+
     public ItemStack getPrimaryResult() {
         List<ItemStack> results = getResults();
         if (!results.isEmpty()) {
